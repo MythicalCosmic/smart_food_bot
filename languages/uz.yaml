@@ -1,6 +1,24 @@
 en:
-  start_message: "Please choose language"
-  menu_message: "welcome to the menu"
+  menu_message: "🍔 <b>Main Menu</b>\n\nChoose an option below to explore our delicious offers! 😋"
 uz: 
-  start_message: "Iltimos tilni tanlang"
-  menu_message: "Menuga xush kelibsiz"
+  start_text: 
+    🎉 <b>Welcome to <u>SmartFood Bot</u>!</b> 🎉
+
+    🍔 <i>Order tasty meals, anytime, anywhere!</i>
+
+
+    🎉 <b>Добро пожаловать в <u>SmartFood Бот</u>!</b> 🎉
+
+    🍕 <i>Заказывайте вкусные блюда в любое время и в любом месте!</i>
+
+
+    🎉 <b><u>SmartFood botiga xush kelibsiz</u>!</b> 🎉
+
+    🥘 <i>Har doim va har yerda mazali taomlarga buyurtma bering!</i>
+    
+
+    🌐 <b>Choose your language / Выберите язык / Tilni tanlang:</b> 🌐
+  menu_message: "🍔 <b>Asosiy Menyu</b>\n\nMazali taomlarimizni ko'rish uchun quyidagi variantlardan birini tanlang! 😋"
+ru:
+  menu_message: "🍔 <b>Главное Меню</b>\n\nВыберите опцию ниже, чтобы ознакомиться с нашими вкусными блюдами! 😋"
+

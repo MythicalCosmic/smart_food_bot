@@ -54,3 +54,5 @@ def get_user_state(user_id: int) -> str | None:
     db.close()
     
     return user.state if user else None
+
+

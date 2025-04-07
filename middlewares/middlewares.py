@@ -18,7 +18,7 @@ class UserRegistrationMiddleware(BaseMiddleware):
             set_user_state(user_id, UserStates.start.state)
             
             await event.answer(
-                "Choose lanaguae",
+                get_translation('start_text', 'uz'),
                 reply_markup=language_keys(),
                 parse_mode='HTML'
             )

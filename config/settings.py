@@ -47,5 +47,4 @@ logging.basicConfig(
         logging.StreamHandler()
     ],
 )
-
 logging.info("Configuration loaded successfully.")
