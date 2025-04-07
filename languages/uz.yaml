@@ -1,24 +1,44 @@
 en:
-  menu_message: "🍔 <b>Main Menu</b>\n\nChoose an option below to explore our delicious offers! 😋"
-uz: 
-  start_text: 
-    🎉 <b>Welcome to <u>SmartFood Bot</u>!</b> 🎉
+  menu_message: |
+    🍔 <b>Main Menu</b>
 
-    🍔 <i>Order tasty meals, anytime, anywhere!</i>
+    😋 Choose an option below to explore our delicious offers!
+  buttons:
+    order: "🛍 Place Order"
+    settings: "⚙️ Settings"
+    about: "ℹ️ About Us"
+    sale: "🎉 Special Offers"
+    feedback: "✍️ Leave Feedback"
+    my_orders: "📋 My Orders"
 
-
-    🎉 <b>Добро пожаловать в <u>SmartFood Бот</u>!</b> 🎉
-
-    🍕 <i>Заказывайте вкусные блюда в любое время и в любом месте!</i>
-
-
+uz:
+  start_text: |
     🎉 <b><u>SmartFood botiga xush kelibsiz</u>!</b> 🎉
 
     🥘 <i>Har doim va har yerda mazali taomlarga buyurtma bering!</i>
-    
 
-    🌐 <b>Choose your language / Выберите язык / Tilni tanlang:</b> 🌐
-  menu_message: "🍔 <b>Asosiy Menyu</b>\n\nMazali taomlarimizni ko'rish uchun quyidagi variantlardan birini tanlang! 😋"
+    🌐 <b>Tilni tanlang:</b> 🌐
+  menu_message: |
+    🍔 <b>Asosiy Menyu</b>
+
+    😋 Mazali taomlarimizni ko‘rish uchun quyidagi variantlardan birini tanlang!
+  buttons:
+    order: "🛍 Buyurtma berish"
+    settings: "⚙️ Sozlamalar"
+    about: "ℹ️ Biz haqimizda"
+    sale: "🎉 Maxsus Aksiya"
+    feedback: "✍️ Fikr bildirish"
+    my_orders: "📋 Buyurtmalarim"
+
 ru:
-  menu_message: "🍔 <b>Главное Меню</b>\n\nВыберите опцию ниже, чтобы ознакомиться с нашими вкусными блюдами! 😋"
+  menu_message: |
+    🍔 <b>Главное Меню</b>
 
+    😋 Выберите опцию ниже, чтобы ознакомиться с нашими вкусными блюдами!
+  buttons:
+    order: "🛍 Сделать заказ"
+    settings: "⚙️ Настройки"
+    about: "ℹ️ О нас"
+    sale: "🎉 Специальные предложения"
+    feedback: "✍️ Оставить отзыв"
+    my_orders: "📋 Мои заказы"

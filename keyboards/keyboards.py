@@ -1,12 +1,12 @@
 from aiogram.types import ReplyKeyboardMarkup, KeyboardButton, InlineKeyboardMarkup, InlineKeyboardButton
+from config.settings import get_translation
 
-
-UZ = "Ozbek Tili"
-RU = "Русский язык"
-EN = "Ingliz tili"
-ORDER = "ORDER"
+UZ = "🇺🇿 O'zbek Tili"
+RU = "🇷🇺 Русский язык"
+EN = "🇺🇸 English"
 
 def language_keys() -> ReplyKeyboardMarkup:
+    
     return ReplyKeyboardMarkup(
         keyboard=[
             [KeyboardButton(text=UZ)],
@@ -15,10 +15,19 @@ def language_keys() -> ReplyKeyboardMarkup:
         resize_keyboard=True
     )
 
-def menu_keys() -> ReplyKeyboardMarkup:
+def menu_keys(language: str = "uz") -> ReplyKeyboardMarkup:
     return ReplyKeyboardMarkup(
         keyboard=[
-            [KeyboardButton(text=ORDER)]
+            [KeyboardButton(text=get_translation("buttons.order", language))],
+            [
+                KeyboardButton(text=get_translation("buttons.settings", language)),
+                KeyboardButton(text=get_translation("buttons.about", language))
+            ],
+            [
+                KeyboardButton(text=get_translation("buttons.sale", language)),
+                KeyboardButton(text=get_translation("buttons.feedback", language))
+            ],
+            [KeyboardButton(text=get_translation("buttons.my_orders", language))]
         ],
         resize_keyboard=True
     )

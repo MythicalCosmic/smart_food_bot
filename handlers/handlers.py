@@ -31,15 +31,15 @@ async def set_language_handler(message: Message, state: FSMContext, bot: Bot):
     try:
         user_id = message.from_user.id
         language_map = {
-            "Ingliz tili": "en",
-            "Ozbek Tili": "uz",
-            "Русский язык": "ru" 
+            "🇺🇸 English": "en",
+            "🇺🇿 O'zbek Tili": "uz",
+            "🇷🇺 Русский язык": "ru" 
         }
         language = language_map.get(message.text, "ru")
         set_user_state(user_id=user_id, state=UserStates.set_language.state)
         set_language_user(user_id=user_id, language=language)
         user_language = get_user_language(user_id=user_id)
-        await message.reply(get_translation('menu_message', user_language), reply_markup=menu_keys(), parse_mode="HTML")
+        await message.reply(get_translation('menu_message', user_language), reply_markup=menu_keys(user_language), parse_mode="HTML")
         set_user_state(user_id=user_id, state=UserStates.menu.state)
         await state.set_state(UserStates.menu)
     except Exception as e:
@@ -51,7 +51,7 @@ async def menu_handler(message: Message, state: FSMContext, bot: Bot):
         user_id = message.from_user.id
         language = get_user_language(user_id=user_id)
         print(language)
-        await message.reply(get_translation('menu_message', language=language), reply_markup=menu_keys(), parse_mode="HTML")
+        await message.reply(get_translation('menu_message', language=language), reply_markup=menu_keys(language=language), parse_mode="HTML")
         await state.clear()
     except Exception as e:
         await message.reply(f"Error occured: {e}")
@@ -69,12 +69,12 @@ async def handle_unrecognized_input(message: Message, state: FSMContext):
         },
         UserStates.menu: {
             "text": get_translation('menu_message', language), 
-            "keyboard": menu_keys()
+            "keyboard": menu_keys(language=language)
         },
     }
     response = state_responses.get(current_state, {
         "text": get_translation('menu_message', language),
-        "keyboard": menu_keys()
+        "keyboard": menu_keys(language=language)
     })
     await message.reply(
         response["text"],
@@ -88,7 +88,7 @@ async def fallback_handler(message: Message, state: FSMContext):
     user_id = message.from_user.id
     language = get_user_language(user_id=user_id)
     if user_exists(user_id=user_id) and language is not None:
-        await message.reply(get_translation('menu_message', language=language), reply_markup=menu_keys(), parse_mode="HTML")
+        await message.reply(get_translation('menu_message', language=language), reply_markup=menu_keys(language=language), parse_mode="HTML")
         await state.set_state(UserStates.menu)
         set_user_state(user_id=user_id, state=UserStates.menu.state)
     else:

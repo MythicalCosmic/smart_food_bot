@@ -35,8 +35,13 @@ with open(LANGUAGES_FILE, "r", encoding="utf-8") as file:
     
 
 def get_translation(key: str, language: str) -> str:
-    
-    return LANGUAGES.get(language, LANGUAGES["uz"]).get(key, key)
+    keys = key.split(".")  
+    data = LANGUAGES.get(language, LANGUAGES["uz"])
+    for k in keys:
+        data = data.get(k, {})
+    if isinstance(data, str):
+        return data
+    return key
 
 
 logging.basicConfig(
