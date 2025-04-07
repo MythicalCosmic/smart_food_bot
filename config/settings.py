@@ -44,6 +44,10 @@ def get_translation(key: str, language: str) -> str:
     return key
 
 
+def get_button_text(button_key: str, language: str) -> str:
+    return LANGUAGES.get(language, LANGUAGES["uz"]).get("buttons", {}).get(button_key, button_key)
+
+
 logging.basicConfig(
     level=getattr(logging, DEBUG_LEVEL, logging.INFO),
     format="%(asctime)s - %(levelname)s - %(message)s",

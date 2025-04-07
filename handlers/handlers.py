@@ -2,8 +2,8 @@ from aiogram import Router, Bot
 from aiogram.types import Message
 from aiogram.fsm.context import FSMContext
 from aiogram.filters import Command, StateFilter
-from .states import UserStates
-from config.settings import get_translation
+from .states import UserStates, OrderStates
+from config.settings import get_translation, get_button_text
 from keyboards.keyboards import *
 from utils.utils import *
 
@@ -17,7 +17,7 @@ async def start_handler(message: Message, state: FSMContext, bot: Bot):
         user_id = message.from_user.id
         language = get_user_language(user_id=user_id)
         if user_exists(user_id=user_id) and language is not None:
-            await message.reply(get_translation('menu_message', language=language), reply_markup=menu_keys())
+            await message.reply(get_translation('menu_message', language=language), reply_markup=menu_keys(language=language), parse_mode="HTML")
             await state.set_state(UserStates.menu)
             set_user_state(user_id=user_id, state=UserStates.menu.state)
         else:
@@ -50,15 +50,21 @@ async def menu_handler(message: Message, state: FSMContext, bot: Bot):
     try:
         user_id = message.from_user.id
         language = get_user_language(user_id=user_id)
-        print(language)
         await message.reply(get_translation('menu_message', language=language), reply_markup=menu_keys(language=language), parse_mode="HTML")
-        await state.clear()
+        await state.set_state(OrderStates.type)
     except Exception as e:
         await message.reply(f"Error occured: {e}")
+
+@router.message(lambda message: message.text == get_button_text('order', get_user_language(message.from_user.id)), StateFilter(OrderStates.type))
+async def order_handler(message: Message, state: FSMContext, bot: Bot):
+    user_id = message.from_user.id
+    set_user_state(user_id=user_id, state=OrderStates.type.state)
+    await message.reply("🛍 You clicked *Order*! Let's start ordering!", parse_mode="Markdown")
 
 
 @router.message(StateFilter(UserStates.set_language, UserStates.menu))
 async def handle_unrecognized_input(message: Message, state: FSMContext):
+    
     current_state = await state.get_state()
     user_id = message.from_user.id
     language = get_user_language(user_id=user_id)
