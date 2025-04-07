@@ -1,0 +1,54 @@
+from aiogram import Router, Bot
+from aiogram.types import Message
+from aiogram.fsm.context import FSMContext
+from aiogram.filters import Command, StateFilter
+from .states import UserStates
+from config.settings import get_translation
+from keyboards.keyboards import *
+from utils.utils import *
+router = Router()
+
+@router.message(Command('start'))
+async def start_handler(message: Message, state: FSMContext, bot: Bot):
+    try:
+        user_id = message.from_user.id
+        language = get_user_language(user_id=user_id)
+        if user_exists(user_id=user_id):
+            await message.reply(get_translation('menu_message', language=language), reply_markup=menu_keys())
+            await state.set_state(UserStates.menu)
+            set_user_state(user_id=user_id, state=UserStates.menu.state)
+        else:
+            await message.reply('Welcome to the bot. PLease choose your language', reply_markup=language_keys())
+            await state.set_state(UserStates.set_language)
+    except Exception as e:
+        await message.reply(f"Error occured in start handler: {e}")
+
+@router.message(StateFilter(UserStates.set_language))
+async def set_language_handler(message: Message, state: FSMContext, bot: Bot):
+    try:
+        user_id = message.from_user.id
+        language_map = {
+            "Ingliz tili": "en",
+            "Ozbek Tili": "uz",
+            "Русский язык": "ru" 
+        }
+        language = language_map.get(message.text, "ru")
+        set_user_state(user_id=user_id, state=UserStates.set_language.state)
+        set_language_user(user_id=user_id, language=language)
+        user_language = get_user_language(user_id=user_id)
+        await message.reply(get_translation('menu_message', user_language), reply_markup=menu_keys())
+        set_user_state(user_id=user_id, state=UserStates.menu.state)
+        await state.set_state(UserStates.menu)
+    except Exception as e:
+        await message.reply(f'Error occurred: {e}')
+
+@router.message(StateFilter(UserStates.menu))
+async def menu_handler(message: Message, state: FSMContext, bot: Bot):
+    try:
+        user_id = message.from_user.id
+        language = get_user_language(user_id=user_id)
+        print(language)
+        await message.reply(get_translation('menu_message', language=language), reply_markup=menu_keys())
+        await state.clear()
+    except Exception as e:
+        await message.reply(f"Error occured: {e}")
