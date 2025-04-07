@@ -2,7 +2,7 @@ from aiogram.types import ReplyKeyboardMarkup, KeyboardButton, InlineKeyboardMar
 
 
 UZ = "Ozbek Tili"
-RU = "Rus tili"
+RU = "Русский язык"
 EN = "Ingliz tili"
 ORDER = "ORDER"
 
