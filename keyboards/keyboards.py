@@ -45,5 +45,6 @@ def location_keys(language: str = "uz") -> ReplyKeyboardMarkup:
     return ReplyKeyboardMarkup(
         keyboard=[
             [KeyboardButton(text=get_translation("buttons.location", language=language), request_location=True), KeyboardButton(text=get_translation("buttons.back", language=language))]
-        ]
+        ],
+        resize_keyboard=True
     )

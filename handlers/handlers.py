@@ -56,13 +56,13 @@ async def order_handler(message: Message, state: FSMContext, bot: Bot):
     except Exception as e:
         await message.reply(f"Error occured: {e}")
 
-@router.message(lambda message: message.text == get_button_text("buttons.deliver", get_user_language(message.from_user.id)), StateFilter(OrderStates.type))
+@router.message(lambda message: message.text == get_button_text("deliver", get_user_language(message.from_user.id)), StateFilter(OrderStates.type))
 async def handle_auto_deliver(message: Message, state: FSMContext, bot: Bot):
     try:
         user_id = message.from_user.id
         language = get_user_language(user_id=user_id)
         set_user_state(user_id=user_id, state=OrderStates.location.state)
-        await message.reply(get_translation("location_message", language=language), parse_mode="HTML", reply_markup=location_keys(language=language))
+        await message.reply(get_translation("location", language=language), parse_mode="HTML", reply_markup=location_keys(language=language))
         await state.set_state(OrderStates.location)
     except Exception as e:
         await message.reply(f"Error occured: {e}")
@@ -78,8 +78,41 @@ async def menu_handler(message: Message, state: FSMContext, bot: Bot):
     except Exception as e:
         await message.reply(f"Error occured: {e}")
 
+@router.message(lambda message: message.text == get_button_text("back", get_user_language(message.from_user.id)), StateFilter(OrderStates.type, OrderStates.location))
+async def handle_centeral_back(message: Message, state: FSMContext, bot: Bot):
+    try:
+        current_state = await state.get_state()
+        user_id = message.from_user.id
+        language = get_user_language(user_id=user_id)
 
-@router.message(StateFilter(UserStates.set_language, UserStates.menu, OrderStates.type))
+        async def go_to_main_menu():
+            await state.set_state(UserStates.menu)  
+            set_user_state(user_id, UserStates.menu.state) 
+            await message.answer(                      
+                get_translation("menu_message", language=language),
+                reply_markup=menu_keys(language=language),
+                parse_mode="HTML"
+            )
+        async def go_to_order_type():
+            await state.set_state(OrderStates.type)
+            set_user_state(user_id, OrderStates.type.state)
+            await message.answer(get_translation("type", language=language), reply_markup=deliver_type_keys(language=language), parse_mode="HTML")
+        
+        state_actions = {
+            OrderStates.type.state: go_to_main_menu,
+            OrderStates.location.state: go_to_order_type,
+        }
+
+        action = state_actions.get(current_state)
+        if action:
+            await action()
+        else:
+            await message.answer("Unknown state. Please try again.")
+
+    except Exception as e:
+        await message.reply(f"Error occurred: {e}")
+
+@router.message(StateFilter(UserStates.set_language, UserStates.menu, OrderStates.type, OrderStates.location))
 async def handle_unrecognized_input(message: Message, state: FSMContext):
     
     current_state = await state.get_state()
@@ -97,7 +130,11 @@ async def handle_unrecognized_input(message: Message, state: FSMContext):
         OrderStates.type: {
             "text": get_translation("type", language=language),
             "keyboard": deliver_type_keys(language=language)
-        }
+        },
+        OrderStates.location: {
+            "text": get_translation("location", language=language),
+            "keyboard": location_keys(language=language)
+        },
     }
     response = state_responses.get(current_state, {
         "text": get_translation('menu_message', language),

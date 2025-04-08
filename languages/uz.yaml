@@ -1,10 +1,12 @@
 en:
   menu_message: |
-    🍔 <b>Main Menu</b>
+    🍔 <b><u>Main Menu</u></b>
 
-    😋 Choose an option below to explore our delicious offers!
+    😋 <i>Choose an option below to explore our <b>delicious offers</b>!</i>
   type: |
-    Please choose order type
+    📦 <b>Please choose the order type:</b>
+  location: |
+    📍 <b>Please send your location!</b>
   buttons:
     order: "🛍 Place Order"
     settings: "⚙️ Settings"
@@ -12,23 +14,26 @@ en:
     sale: "🎉 Special Offers"
     feedback: "✍️ Leave Feedback"
     my_orders: "📋 My Orders"
-    deliver: "Delivery"
-    hand_deliver: "Hand Delivery"
-    back: "Back"
-    location: "Send my Location"
+    deliver: "🚚 Delivery"
+    hand_deliver: "🏃‍♂️ Pickup"
+    back: "🔙 Back"
+    location: "📍 Send my Location"
+
 uz:
   start_text: |
     🎉 <b><u>SmartFood botiga xush kelibsiz</u>!</b> 🎉
 
-    🥘 <i>Har doim va har yerda mazali taomlarga buyurtma bering!</i>
+    🥘 <i>Har doim va har yerda <b>mazali taomlarga</b> buyurtma bering!</i>
 
     🌐 <b>Tilni tanlang:</b> 🌐
   menu_message: |
-    🍔 <b>Asosiy Menyu</b>
+    🍔 <b><u>Asosiy Menyu</u></b>
 
-    😋 Mazali taomlarimizni ko‘rish uchun quyidagi variantlardan birini tanlang!
+    😋 <i>Mazali taomlarimizni ko‘rish uchun quyidagi variantlardan birini tanlang!</i>
   type: |
-    Iltimos yetkazib berish turini tanlang
+    📦 <b>Iltimos, buyurtma turini tanlang:</b>
+  location: |
+    📍 <b>Iltimos, lokatsiyangizni yuboring!</b>
   buttons:
     order: "🛍 Buyurtma berish"
     settings: "⚙️ Sozlamalar"
@@ -36,17 +41,20 @@ uz:
     sale: "🎉 Maxsus Aksiya"
     feedback: "✍️ Fikr bildirish"
     my_orders: "📋 Buyurtmalarim"
-    deliver: "Yetkazib berish"
-    hand_deliver: "Olib ketish"
-    back: :"Orqaga"
-    location: "Lokatsiyamni yuborish"
+    deliver: "🚚 Yetkazib berish"
+    hand_deliver: "🏃‍♂️ Olib ketish"
+    back: "🔙 Orqaga"
+    location: "📍 Lokatsiyamni yuborish"
+
 ru:
   menu_message: |
-    🍔 <b>Главное Меню</b>
+    🍔 <b><u>Главное Меню</u></b>
 
-    😋 Выберите опцию ниже, чтобы ознакомиться с нашими вкусными блюдами!
+    😋 <i>Выберите опцию ниже, чтобы открыть наши <b>вкусные предложения</b>!</i>
   type: |
-    Nothing in Russian
+    📦 <b>Пожалуйста, выберите тип заказа:</b>
+  location: |
+    📍 <b>Пожалуйста, отправьте ваше местоположение!</b>
   buttons:
     order: "🛍 Сделать заказ"
     settings: "⚙️ Настройки"
@@ -54,8 +62,7 @@ ru:
     sale: "🎉 Специальные предложения"
     feedback: "✍️ Оставить отзыв"
     my_orders: "📋 Мои заказы"
-    deliver: "russian"
-    hand_deliver: "russian"
-    back: "back"
-    location: "Location in Russian"
-
+    deliver: "🚚 Доставка"
+    hand_deliver: "🏃‍♂️ Самовывоз"
+    back: "🔙 Назад"
+    location: "📍 Отправить местоположение"
