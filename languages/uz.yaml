@@ -3,6 +3,8 @@ en:
     🍔 <b>Main Menu</b>
 
     😋 Choose an option below to explore our delicious offers!
+  type: |
+    Please choose order type
   buttons:
     order: "🛍 Place Order"
     settings: "⚙️ Settings"
@@ -10,7 +12,10 @@ en:
     sale: "🎉 Special Offers"
     feedback: "✍️ Leave Feedback"
     my_orders: "📋 My Orders"
-
+    deliver: "Delivery"
+    hand_deliver: "Hand Delivery"
+    back: "Back"
+    location: "Send my Location"
 uz:
   start_text: |
     🎉 <b><u>SmartFood botiga xush kelibsiz</u>!</b> 🎉
@@ -22,6 +27,8 @@ uz:
     🍔 <b>Asosiy Menyu</b>
 
     😋 Mazali taomlarimizni ko‘rish uchun quyidagi variantlardan birini tanlang!
+  type: |
+    Iltimos yetkazib berish turini tanlang
   buttons:
     order: "🛍 Buyurtma berish"
     settings: "⚙️ Sozlamalar"
@@ -29,12 +36,17 @@ uz:
     sale: "🎉 Maxsus Aksiya"
     feedback: "✍️ Fikr bildirish"
     my_orders: "📋 Buyurtmalarim"
-
+    deliver: "Yetkazib berish"
+    hand_deliver: "Olib ketish"
+    back: :"Orqaga"
+    location: "Lokatsiyamni yuborish"
 ru:
   menu_message: |
     🍔 <b>Главное Меню</b>
 
     😋 Выберите опцию ниже, чтобы ознакомиться с нашими вкусными блюдами!
+  type: |
+    Nothing in Russian
   buttons:
     order: "🛍 Сделать заказ"
     settings: "⚙️ Настройки"
@@ -42,3 +54,8 @@ ru:
     sale: "🎉 Специальные предложения"
     feedback: "✍️ Оставить отзыв"
     my_orders: "📋 Мои заказы"
+    deliver: "russian"
+    hand_deliver: "russian"
+    back: "back"
+    location: "Location in Russian"
+
