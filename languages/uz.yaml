@@ -7,6 +7,8 @@ en:
     📦 <b>Please choose the order type:</b>
   location: |
     📍 <b>Please send your location!</b>
+  items_message: |
+    Choose category
   buttons:
     order: "🛍 Place Order"
     settings: "⚙️ Settings"
@@ -34,6 +36,8 @@ uz:
     📦 <b>Iltimos, buyurtma turini tanlang:</b>
   location: |
     📍 <b>Iltimos, lokatsiyangizni yuboring!</b>
+  items_message: |
+    Iltimos categoriyani tanlang
   buttons:
     order: "🛍 Buyurtma berish"
     settings: "⚙️ Sozlamalar"
@@ -55,6 +59,8 @@ ru:
     📦 <b>Пожалуйста, выберите тип заказа:</b>
   location: |
     📍 <b>Пожалуйста, отправьте ваше местоположение!</b>
+  items_message: |
+    in russian
   buttons:
     order: "🛍 Сделать заказ"
     settings: "⚙️ Настройки"
@@ -64,5 +70,5 @@ ru:
     my_orders: "📋 Мои заказы"
     deliver: "🚚 Доставка"
     hand_deliver: "🏃‍♂️ Самовывоз"
-    back: "🔙 Назад"
+    back: "🔙 Назад к урологу"
     location: "📍 Отправить местоположение"

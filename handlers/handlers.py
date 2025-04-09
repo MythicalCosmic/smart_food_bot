@@ -1,5 +1,5 @@
-from aiogram import Router, Bot
-from aiogram.types import Message
+from aiogram import Router, Bot, F
+from aiogram.types import Message, ContentType 
 from aiogram.fsm.context import FSMContext
 from aiogram.filters import Command, StateFilter
 from .states import UserStates, OrderStates
@@ -62,8 +62,24 @@ async def handle_auto_deliver(message: Message, state: FSMContext, bot: Bot):
         user_id = message.from_user.id
         language = get_user_language(user_id=user_id)
         set_user_state(user_id=user_id, state=OrderStates.location.state)
+        add_user_order_type(user_id=user_id, order_type="deliver")
         await message.reply(get_translation("location", language=language), parse_mode="HTML", reply_markup=location_keys(language=language))
         await state.set_state(OrderStates.location)
+    except Exception as e:
+        await message.reply(f"Error occured: {e}")
+
+@router.message(F.content_type == ContentType.LOCATION, StateFilter(OrderStates.location))
+async def handle_location(message: Message, state: FSMContext, bot: Bot):
+    try:
+        user_id = message.from_user.id
+        langauge = get_user_language(user_id=user_id)
+        latitude = message.location.latitude
+        longitude = message.location.longitude 
+        print(f"lat: {latitude} long {longitude}") 
+        set_user_state(user_id=user_id, state=OrderStates.items.state)
+        add_user_location(user_id=user_id, latitude=latitude, longitude=longitude)
+        await message.reply(get_translation("items_message", language=langauge), parse_mode="HTML")
+        await state.set_state(OrderStates.items)  
     except Exception as e:
         await message.reply(f"Error occured: {e}")
 

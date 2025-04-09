@@ -1,5 +1,5 @@
 from sqlalchemy.orm import Session
-from database.models import User
+from database.models import User, Order
 from database.database import engine, SessionLocal
 
 
@@ -55,4 +55,36 @@ def get_user_state(user_id: int) -> str | None:
     
     return user.state if user else None
 
+def add_user_order_type(user_id: int, order_type: str):
+    db = SessionLocal()
+    existing_order = db.query(Order).filter(Order.user_id == user_id, Order.status == "basket").first()
+    
+    if existing_order:
+        existing_order.order_type = order_type
+        db.commit() 
+        db.refresh(existing_order)
+        return existing_order
+    else:
+        new_order = Order(
+            user_id=user_id,
+            order_type=order_type,
+            status="basket"
+        )
+        db.add(new_order)
+        db.commit()
+        db.refresh(new_order)
+        return new_order
 
+def add_user_location(user_id: int, latitude: float, longitude: float):
+    db = SessionLocal()
+    order = db.query(Order).filter(Order.user_id == user_id, Order.status == "basket").first()
+    
+    if order:
+        order.location_lat = latitude
+        order.location_lon = longitude
+        db.commit()  
+        db.refresh(order) 
+    else:
+        print(f"No active 'basket' order found for user {user_id}")
+    
+    return order
