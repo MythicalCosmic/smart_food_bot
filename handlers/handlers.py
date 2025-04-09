@@ -6,6 +6,8 @@ from .states import UserStates, OrderStates
 from config.settings import get_translation, get_button_text
 from keyboards.keyboards import *
 from utils.utils import *
+from geopy.geocoders import Nominatim
+from geopy.exc import GeocoderTimedOut
 
 
 router = Router()
@@ -72,16 +74,29 @@ async def handle_auto_deliver(message: Message, state: FSMContext, bot: Bot):
 async def handle_location(message: Message, state: FSMContext, bot: Bot):
     try:
         user_id = message.from_user.id
-        langauge = get_user_language(user_id=user_id)
+        language = get_user_language(user_id=user_id)
         latitude = message.location.latitude
-        longitude = message.location.longitude 
-        print(f"lat: {latitude} long {longitude}") 
-        set_user_state(user_id=user_id, state=OrderStates.items.state)
+        longitude = message.location.longitude
+        print(f"lat: {latitude} long {longitude}")
+
+        set_user_state(user_id=user_id, state=OrderStates.location_confirmation.state)
         add_user_location(user_id=user_id, latitude=latitude, longitude=longitude)
-        await message.reply(get_translation("items_message", language=langauge), parse_mode="HTML")
-        await state.set_state(OrderStates.items)  
+        geolocator = Nominatim(user_agent="my_telegram_bot")
+        try:
+            location = geolocator.reverse((latitude, longitude), timeout=10)
+            address = location.address if location else "Unknown location"
+        except GeocoderTimedOut:
+            address = "Address lookup timed out"
+        await message.reply(
+            f"📍 <b>Your location:</b>\n{address}\n\n"
+            f"✅ If it's correct, press Confirm.\n"
+            f"❌ If not, send location again.",
+            parse_mode="HTML"
+        )
+        await state.set_state(OrderStates.location_confirmation)
     except Exception as e:
-        await message.reply(f"Error occured: {e}")
+        await message.reply(f"⚠️ Error occurred: {e}")
+
 
 @router.message(StateFilter(UserStates.menu))
 async def menu_handler(message: Message, state: FSMContext, bot: Bot):
