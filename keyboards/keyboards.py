@@ -41,10 +41,29 @@ def deliver_type_keys(language: str = "uz") -> ReplyKeyboardMarkup:
         resize_keyboard=True
     )
 
-def location_keys(language: str = "uz") -> ReplyKeyboardMarkup:
+def location_keys(language: str = "uz", saved_location: str | None = None) -> ReplyKeyboardMarkup:
+    if saved_location:
+        keyboard = [
+            [KeyboardButton(text=saved_location)],
+            [KeyboardButton(text=get_translation("buttons.location", language=language), request_location=True)],
+            [KeyboardButton(text=get_translation("buttons.back", language=language))]
+        ]
+    else:
+        keyboard = [
+            [KeyboardButton(text=get_translation("buttons.location", language=language), request_location=True)],
+            [KeyboardButton(text=get_translation("buttons.back", language=language))]
+        ]
+    return ReplyKeyboardMarkup(
+        keyboard=keyboard,
+        resize_keyboard=True
+    )
+
+
+def location_confirmation_keys(language: str = "uz") -> ReplyKeyboardMarkup:
     return ReplyKeyboardMarkup(
         keyboard=[
-            [KeyboardButton(text=get_translation("buttons.location", language=language), request_location=True), KeyboardButton(text=get_translation("buttons.back", language=language))]
+            [KeyboardButton(text=get_translation("buttons.confirm", language=language)),KeyboardButton(text=get_translation("buttons.resend", language=language))],
+            [KeyboardButton(text=get_translation("buttons.add_more", language=language)), KeyboardButton(text=get_translation("buttons.back", language=language))]
         ],
         resize_keyboard=True
     )

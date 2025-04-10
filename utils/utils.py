@@ -1,7 +1,6 @@
-from sqlalchemy.orm import Session
 from database.models import User, Order
-from database.database import engine, SessionLocal
-
+from database.database import SessionLocal
+from geopy.geocoders import Nominatim
 
 def user_exists(user_id: int) -> bool:
     db = SessionLocal()
@@ -88,3 +87,28 @@ def add_user_location(user_id: int, latitude: float, longitude: float):
         print(f"No active 'basket' order found for user {user_id}")
     
     return order
+
+
+def get_user_location(user_id: int) -> str | None:
+    try:
+        session = SessionLocal()
+        order = session.query(Order)\
+            .filter(Order.user_id == user_id)\
+            .filter(Order.location_lat.isnot(None), Order.location_lon.isnot(None))\
+            .order_by(Order.created_at.desc())\
+            .first()
+
+        if order:
+            geolocator = Nominatim(user_agent="smart_food") 
+            location = geolocator.reverse((order.location_lat, order.location_lon), exactly_one=True)
+            if location and location.address:
+                return location.address
+            else:
+                return None
+        else:
+            return None
+    except Exception as e:
+        print(f"Error fetching user location: {e}")
+        return None
+    finally:
+        session.close()

@@ -20,6 +20,12 @@ en:
     hand_deliver: "🏃‍♂️ Pickup"
     back: "🔙 Back"
     location: "📍 Send my Location"
+    confirm: |
+      Confirm
+    resend: |
+      Resend my location
+    add_more: |
+      Add full location
 
 uz:
   start_text: |
@@ -49,6 +55,12 @@ uz:
     hand_deliver: "🏃‍♂️ Olib ketish"
     back: "🔙 Orqaga"
     location: "📍 Lokatsiyamni yuborish"
+    confim: |
+      Tasdiqlash
+    resend: |
+      Qayta yuborish
+    add_more: |
+      Qoshimcha
 
 ru:
   menu_message: |
@@ -70,5 +82,11 @@ ru:
     my_orders: "📋 Мои заказы"
     deliver: "🚚 Доставка"
     hand_deliver: "🏃‍♂️ Самовывоз"
-    back: "🔙 Назад к урологу"
+    back: "🔙 Назад"
     location: "📍 Отправить местоположение"
+    confirm: |
+      russian
+    resend: |
+      russian
+    add_more: |
+      russian
