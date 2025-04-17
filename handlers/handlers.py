@@ -64,7 +64,7 @@ async def order_handler(message: Message, state: FSMContext, bot: Bot):
         user_id = message.from_user.id
         language = get_user_language(user_id=user_id)
         set_user_state(user_id=user_id, state=OrderStates.items.state)
-        await message.reply(get_translation("items", language=language), parse_mode="HTML")
+        await message.reply(get_translation("items", language=language), parse_mode="HTML", reply_markup=cate_keys())
         await state.set_state(OrderStates.items)
     except Exception as e:
         await message.reply(f"Error occured: {e}")
@@ -109,6 +109,9 @@ async def handle_location(message: Message, state: FSMContext, bot: Bot):
         await state.set_state(OrderStates.location_confirmation)
     except Exception as e:
         await message.reply(f"⚠️ Error occurred: {e}")
+
+#
+
 
 
 @router.message(lambda message: any(word in message.text.lower() for word in ["andijon", "o'zbekiston", "marhamat"]), StateFilter(OrderStates.location))

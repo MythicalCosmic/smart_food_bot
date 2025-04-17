@@ -1,5 +1,6 @@
 from aiogram.types import ReplyKeyboardMarkup, KeyboardButton, InlineKeyboardMarkup, InlineKeyboardButton
 from config.settings import get_translation
+from utils.utils import get_category_name_all
 
 UZ = "🇺🇿 O'zbek Tili"
 RU = "🇷🇺 Русский язык"
@@ -67,3 +68,14 @@ def location_confirmation_keys(language: str = "uz") -> ReplyKeyboardMarkup:
         ],
         resize_keyboard=True
     )
+
+def cate_keys() -> ReplyKeyboardMarkup:
+    category_str = get_category_name_all()
+    if not category_str:
+        return ReplyKeyboardMarkup(keyboard=[[KeyboardButton(text="No categories found")]], resize_keyboard=True)
+
+    category_names = category_str.split(", ")
+
+    keyboard = [[KeyboardButton(text=name)] for name in category_names]
+
+    return ReplyKeyboardMarkup(keyboard=keyboard, resize_keyboard=True)

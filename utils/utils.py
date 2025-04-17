@@ -1,4 +1,4 @@
-from database.models import User, Order
+from database.models import User, Order, Category
 from database.database import SessionLocal
 from geopy.geocoders import Nominatim
 
@@ -112,3 +112,21 @@ def get_user_location(user_id: int) -> str | None:
         return None
     finally:
         session.close()
+
+
+
+def get_category_name_all() -> str | None:
+    try:
+        db = SessionLocal()
+        categories = db.query(Category).all()
+        names = [category.name for category in categories]
+        result = ", ".join(names)
+        print(result)
+        return result
+    except Exception as e:
+        print(f"Error fetching category names: {e}")
+        return None
+    finally:
+        db.close()
+
+
