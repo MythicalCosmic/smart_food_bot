@@ -25,6 +25,7 @@ class Order(Base):
     order_type = Column(String, nullable=False) 
     location_lat = Column(Float, nullable=True) 
     location_lon = Column(Float, nullable=True)
+    extra_location = Column(String)
     status = Column(String, default="basket")  
     created_at = Column(DateTime, default=datetime.utcnow)
     user = relationship("User", back_populates="orders")
