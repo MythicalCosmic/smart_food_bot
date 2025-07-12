@@ -48,7 +48,7 @@ async def set_language_handler(message: Message, state: FSMContext, bot: Bot):
         await message.reply(f'Error occurred: {e}')
 
 @router.message(lambda message: message.text == get_button_text('order', get_user_language(message.from_user.id)), StateFilter(UserStates.menu))
-async def order_handler(message: Message, state: FSMContext, bot: Bot):
+async def order_handler(message: Message, state: FSMContext, bot: Bot):    
     try:
         user_id = message.from_user.id
         language = get_user_language(user_id=user_id)
@@ -58,13 +58,27 @@ async def order_handler(message: Message, state: FSMContext, bot: Bot):
     except Exception as e:
         await message.reply(f"Error occured: {e}")
 
+@router.message(lambda message: message.text == get_button_text('settings', get_user_language(message.from_user.id)), StateFilter(UserStates.menu))
+async def settings_handler(message: Message, state: FSMContext, bot: Bot):
+    try:
+        user_id = message.from_user.id
+        language = get_user_language(user_id=user_id)
+        await message.reply(get_translation("settings_message", language=language), parse_mode="HTML", reply_markup=settings_keys(language=language))
+        set_user_state(user_id=user_id, state=UserStates.menu.state)
+        await state.set_state(UserStates.menu)
+    except Exception as e:
+        await message.reply(f"Error occured: {e}")
+
 @router.message(lambda message: message.text == get_button_text('hand_deliver', get_user_language(message.from_user.id)), StateFilter(OrderStates.type))
 async def order_handler(message: Message, state: FSMContext, bot: Bot):
     try:
         user_id = message.from_user.id
         language = get_user_language(user_id=user_id)
         set_user_state(user_id=user_id, state=OrderStates.items.state)
-        await message.reply(get_translation("items", language=language), parse_mode="HTML", reply_markup=cate_keys())
+        await message.reply(
+            text=get_translation("items_message", language=language),
+            parse_mode="HTML", reply_markup=cate_keys(language=language)
+        )
         await state.set_state(OrderStates.items)
     except Exception as e:
         await message.reply(f"Error occured: {e}")
@@ -90,7 +104,6 @@ async def handle_location(message: Message, state: FSMContext, bot: Bot):
         language = get_user_language(user_id=user_id)
         latitude = message.location.latitude
         longitude = message.location.longitude
-        print(f"lat: {latitude} long {longitude}")
 
         set_user_state(user_id=user_id, state=OrderStates.location_confirmation.state)
         add_user_location(user_id=user_id, latitude=latitude, longitude=longitude)
@@ -101,17 +114,79 @@ async def handle_location(message: Message, state: FSMContext, bot: Bot):
         except GeocoderTimedOut:
             address = "Address lookup timed out"
         await message.reply(
-            f"📍 <b>Your location:</b>\n{address}\n\n"
-            f"✅ If it's correct, press Confirm.\n"
-            f"❌ If not, send location again.",
+           get_translation("location_confirmation", language=language).replace("{location}", address),
             parse_mode="HTML", reply_markup=location_confirmation_keys(language=language)
         )
         await state.set_state(OrderStates.location_confirmation)
     except Exception as e:
         await message.reply(f"⚠️ Error occurred: {e}")
 
-#
+@router.message(lambda message: message.text == get_button_text("confirm", get_user_language(message.from_user.id)), StateFilter(OrderStates.location_confirmation))
+async def confirm_location(message: Message, state: FSMContext, bot: Bot):
+    try:
+        user_id = message.from_user.id
+        language = get_user_language(user_id=user_id)
+        user_location = get_user_location(user_id=user_id)
+        set_user_state(user_id=user_id, state=OrderStates.items.state)
+        await message.reply(
+            text=get_translation("location_confirmed", language=language).replace("{location}", user_location) + "\n\n" + get_user_extra_location(user_id=user_id),
+            parse_mode="HTML",
+        )
+        await message.reply(
+            text=get_translation("items_message", language=language),
+            parse_mode="HTML", reply_markup=cate_keys(language=language)
+        )
+        await state.set_state(OrderStates.items)
+    except Exception as e:
+        await message.reply(f"Error occurred: {e}")
 
+@router.message(lambda message: message.text == get_button_text("resend", get_user_language(message.from_user.id)), StateFilter(OrderStates.location_confirmation))
+async def resend_location(message: Message, state: FSMContext, bot: Bot):
+    try:
+        user_id = message.from_user.id
+        language = get_user_language(user_id=user_id)
+        set_user_state(user_id=user_id, state=OrderStates.location.state)
+        user_location = get_user_location(user_id=user_id)
+        await message.reply(
+            text=get_translation("location", language=language),
+            parse_mode="HTML", reply_markup=location_keys(language=language, saved_location=user_location)
+        )
+        await state.set_state(OrderStates.location)
+    except Exception as e:
+        await message.reply(f"Error occurred: {e}")
+
+@router.message(lambda message: message.text == get_button_text("add_more", get_user_language(message.from_user.id)), StateFilter(OrderStates.location_confirmation))
+async def add_more_location(message: Message, state: FSMContext, bot: Bot):
+    try:
+        user_id = message.from_user.id
+        language = get_user_language(user_id=user_id)
+        set_user_state(user_id=user_id, state=OrderStates.location.state)
+        await message.reply(
+            text=get_translation("extra_location_text", language=language),
+            parse_mode="HTML"
+        )
+        await state.set_state(OrderStates.extra_location)
+    except Exception as e:
+        await message.reply(f"Error occurred: {e}")
+
+@router.message(StateFilter(OrderStates.extra_location))
+async def handle_extra_location(message: Message, state: FSMContext, bot: Bot):
+    try:
+        user_id = message.from_user.id
+        language = get_user_language(user_id=user_id)
+        extra_location = message.text.strip()
+        add_user_extra_location(user_id=user_id, extra_location=extra_location)
+        if extra_location:
+            set_user_state(user_id=user_id, state=OrderStates.location_confirmation.state)
+            await message.reply(
+                text=get_translation("extra_location_confirmed", language=language).replace("{extra_location}", extra_location).replace("{location}", get_user_location(user_id=user_id)),
+                parse_mode="HTML", reply_markup=location_confirmation_keys(language=language)
+            )
+            await state.set_state(OrderStates.location_confirmation)
+        else:
+            await message.reply(get_translation("empty_location_error", language=language), parse_mode="HTML")
+    except Exception as e:
+        await message.reply(f"Error occurred: {e}")
 
 
 @router.message(lambda message: any(word in message.text.lower() for word in ["andijon", "o'zbekiston", "marhamat"]), StateFilter(OrderStates.location))
@@ -120,12 +195,37 @@ async def handle_items(message: Message, state: FSMContext, bot: Bot):
         user_id = message.from_user.id
         language = get_user_language(user_id=user_id)
         set_user_state(user_id=user_id, state=OrderStates.items.state)
-        await message.reply("Welcome to Items section")
+        user_location = message.text
+        await message.reply(
+            text=get_translation("location_confirmed", language=language).replace("{location}", user_location),
+            parse_mode="HTML", reply_markup=cate_keys(language=language)
+        )
         await state.set_state(OrderStates.items)
     except Exception as e:
         await message.reply(f"Error occured: {e}")
 
-
+@router.message(StateFilter(OrderStates.items))
+async def handle_category_selection(message: Message, state: FSMContext):
+    user_id = message.from_user.id
+    language = get_user_language(user_id)
+    selected_category_name = message.text
+    try:
+        category = get_category_by_name(selected_category_name, language, )
+        if not category:
+            await message.reply("❌ Unknown category.")
+            return
+        subcategories = get_subcategories_by_category_id(category.id)
+        if not subcategories:
+            await message.reply("❌ No subcategories found.")
+            return
+        keyboard = generate_subcategory_keyboard(subcategories, language)
+        await message.reply(
+            text="📂 Select a subcategory:",
+            reply_markup=keyboard
+        )
+        await state.set_state(OrderStates.subcategory)
+    except Exception as e:
+        await message.reply(f"❌ Error: {e}")
 
 @router.message(StateFilter(UserStates.menu))
 async def menu_handler(message: Message, state: FSMContext, bot: Bot):
@@ -138,7 +238,7 @@ async def menu_handler(message: Message, state: FSMContext, bot: Bot):
     except Exception as e:
         await message.reply(f"Error occured: {e}")
 
-@router.message(lambda message: message.text == get_button_text("back", get_user_language(message.from_user.id)), StateFilter(OrderStates.type, OrderStates.location, OrderStates.location_confirmation))
+@router.message(lambda message: message.text == get_button_text("back", get_user_language(message.from_user.id)), StateFilter(OrderStates.type, OrderStates.location, OrderStates.location_confirmation, OrderStates.items))
 async def handle_centeral_back(message: Message, state: FSMContext, bot: Bot):
     try:
         current_state = await state.get_state()
@@ -163,10 +263,21 @@ async def handle_centeral_back(message: Message, state: FSMContext, bot: Bot):
             await state.set_state(OrderStates.location)
             set_user_state(user_id=user_id, state=OrderStates.location.state)
             await message.answer(get_translation("location", language=language), reply_markup=location_keys(language=language, saved_location=user_location), parse_mode="HTML")
+
+        async def go_to_location_confirmation():
+            await state.set_state(OrderStates.location_confirmation)
+            set_user_state(user_id=user_id, state=OrderStates.location_confirmation.state)
+            user_location = get_user_location(user_id=user_id)
+            await message.answer(
+                get_translation("location_confirmation", language=language).replace("{location}", user_location),
+                reply_markup=location_confirmation_keys(language=language),
+                parse_mode="HTML"
+            )
         state_actions = {
             OrderStates.type.state: go_to_main_menu,
             OrderStates.location.state: go_to_order_type,
-            OrderStates.location_confirmation: go_to_location
+            OrderStates.location_confirmation: go_to_location,
+            OrderStates.items.state: go_to_location_confirmation,
         }
 
         action = state_actions.get(current_state)
@@ -205,6 +316,10 @@ async def handle_unrecognized_input(message: Message, state: FSMContext):
         OrderStates.location_confirmation: {
             "text": get_translation(f"Your location: {user_location}", language=language),
             "keyboard": location_confirmation_keys(language=language)
+        },
+        OrderStates.items: {
+            "text": get_translation("items_message", language=language),
+            "keyboard": cate_keys(language=language)
         }
     }
     response = state_responses.get(current_state, {

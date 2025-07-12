@@ -8,6 +8,7 @@ class UserStates(StatesGroup):
 class OrderStates(StatesGroup):
     type = State()
     location = State()
+    extra_location = State()
     location_confirmation = State()
     items = State()
 

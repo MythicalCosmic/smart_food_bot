@@ -3,12 +3,24 @@ en:
     🍔 <b><u>Main Menu</u></b>
 
     😋 <i>Choose an option below to explore our <b>delicious offers</b>!</i>
+  settings_message: |
+    ⚙️ <b><u>Settings</u></b>
+
+    🔧 <i>Customize your preferences below:</i>
+    🌐 Language  
+    🎂 Birthday  
+    📞 Phone Number
   type: |
-    📦 <b>Please choose the order type:</b>
+    📦 <b>Please choose your preferred order type:</b>
   location: |
-    📍 <b>Please send your location!</b>
+    📍 <b>Send us your location to get started!</b>
+  location_confirmation: "📍 <b>Your location:</b>\n{location}\n\n📌 Is everything correct?"
+  location_confirmed: "✅ <b>Your location has been confirmed:</b>\n{location}!"
+  extra_location_text: |
+    📍 <b>Send us your detailed address:</b>
+  extra_location_confirmed: "📍 <b>Your detailed address:</b>\n{location}, {extra_location}\n\n📌 Is this correct?"
   items_message: |
-    Choose category
+    📂 <b>Select a category to see what’s cookin’!</b>
   buttons:
     order: "🛍 Place Order"
     settings: "⚙️ Settings"
@@ -16,34 +28,41 @@ en:
     sale: "🎉 Special Offers"
     feedback: "✍️ Leave Feedback"
     my_orders: "📋 My Orders"
-    deliver: "🚚 Delivery"
+    deliver: "🚚 Home Delivery"
     hand_deliver: "🏃‍♂️ Pickup"
     back: "🔙 Back"
-    location: "📍 Send my Location"
-    confirm: |
-      Confirm
-    resend: |
-      Resend my location
-    add_more: |
-      Add full location
+    location: "📍 Send My Location"
+    location_confirmation: "📍 <b>Your location:</b>\n{location}\n\n📌 Please confirm"
+    location_confirmed: "✅ <b>Confirmed!</b>\n{location},"
+    confirm: "✅ Confirm"
+    resend: "🔄 Resend Location"
+    add_more: "➕ Add Detailed Address"
+    language: "🌐 Change Language"
+    birthday: "🎂 Set Birthday"
+    phone_number: "📞 Update Phone Number"
+
 
 uz:
-  start_text: |
-    🎉 <b><u>SmartFood botiga xush kelibsiz</u>!</b> 🎉
-
-    🥘 <i>Har doim va har yerda <b>mazali taomlarga</b> buyurtma bering!</i>
-
-    🌐 <b>Tilni tanlang:</b> 🌐
   menu_message: |
     🍔 <b><u>Asosiy Menyu</u></b>
 
-    😋 <i>Mazali taomlarimizni ko‘rish uchun quyidagi variantlardan birini tanlang!</i>
+    😋 <i>Mazali taomlarimizni ko‘rish uchun quyidagilardan birini tanlang!</i>
   type: |
     📦 <b>Iltimos, buyurtma turini tanlang:</b>
+  settings_message: |
+    ⚙️ <b><u>Sozlamalar</u></b>
+
+    🔧 <i>Quyidagilar orqali sozlamalaringizni o‘zgartiring:</i>
+    🌐 Til  
+    🎂 Tug‘ilgan kun  
+    📞 Telefon raqam
+
   location: |
     📍 <b>Iltimos, lokatsiyangizni yuboring!</b>
+  location_confirmation: "📍 <b>Lokatsiyangiz:</b>\n{location}\n\n📌 To‘g‘rimi?"
+  location_confirmed: "✅ <b>Lokatsiyangiz tasdiqlandi:</b>\n{location}\n\n🍽 Endi buyurtma berishingiz mumkin!"
   items_message: |
-    Iltimos categoriyani tanlang
+    📂 <b>Iltimos, kategoriyani tanlang:</b>
   buttons:
     order: "🛍 Buyurtma berish"
     settings: "⚙️ Sozlamalar"
@@ -55,38 +74,52 @@ uz:
     hand_deliver: "🏃‍♂️ Olib ketish"
     back: "🔙 Orqaga"
     location: "📍 Lokatsiyamni yuborish"
-    confim: |
-      Tasdiqlash
-    resend: |
-      Qayta yuborish
-    add_more: |
-      Qoshimcha
+    location_confirmation: "📍 <b>Lokatsiyangiz:</b>\n{location}\n\n📌 Tasdiqlaysizmi?"
+    location_confirmed: "✅ <b>Lokatsiyangiz tasdiqlandi:</b>\n{location}\n\n🍽 Endi buyurtma berish vaqti!"
+    confirm: "✅ Tasdiqlash"
+    resend: "🔄 Qayta yuborish"
+    add_more: "➕ To‘liq manzil qo‘shish"
+    language: "🌐 Tilni o‘zgartirish"
+    birthday: "🎂 Tug‘ilgan kun"
+    phone_number: "📞 Telefon raqam"
 
 ru:
   menu_message: |
     🍔 <b><u>Главное Меню</u></b>
 
-    😋 <i>Выберите опцию ниже, чтобы открыть наши <b>вкусные предложения</b>!</i>
+    😋 <i>Выберите опцию ниже, чтобы увидеть наши <b>вкусные предложения</b>!</i>
+  settings_message: |
+    ⚙️ <b><u>Настройки</u></b>
+
+    🔧 <i>Настройте параметры ниже:</i>
+    🌐 Язык  
+    🎂 День рождения  
+    📞 Телефон
+
   type: |
     📦 <b>Пожалуйста, выберите тип заказа:</b>
   location: |
     📍 <b>Пожалуйста, отправьте ваше местоположение!</b>
+  location_confirmation: "📍 <b>Ваше местоположение:</b>\n{location}\n\n📌 Всё верно?"
+  location_confirmed: "✅ <b>Местоположение подтверждено:</b>\n{location}\n\n🍽 Теперь можно выбирать вкусности!"
   items_message: |
-    in russian
+    📂 <b>Выберите категорию:</b>
   buttons:
     order: "🛍 Сделать заказ"
     settings: "⚙️ Настройки"
     about: "ℹ️ О нас"
-    sale: "🎉 Специальные предложения"
+    sale: "🎉 Акции"
     feedback: "✍️ Оставить отзыв"
     my_orders: "📋 Мои заказы"
     deliver: "🚚 Доставка"
     hand_deliver: "🏃‍♂️ Самовывоз"
     back: "🔙 Назад"
     location: "📍 Отправить местоположение"
-    confirm: |
-      russian
-    resend: |
-      russian
-    add_more: |
-      russian
+    location_confirmation: "📍 <b>Ваше местоположение:</b>\n{location}\n\n📌 Подтверждаете?"
+    location_confirmed: "✅ <b>Подтверждено:</b>\n{location}\n\n🍽 Теперь можно заказывать!"
+    confirm: "✅ Подтвердить"
+    resend: "🔄 Отправить снова"
+    add_more: "➕ Добавить точный адрес"
+    language: "🌐 Сменить язык"
+    birthday: "🎂 День рождения"
+    phone_number: "📞 Телефон"

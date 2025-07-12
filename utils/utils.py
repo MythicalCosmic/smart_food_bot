@@ -1,4 +1,4 @@
-from database.models import User, Order, Category
+from database.models import User, Order, Category, SubCategory
 from database.database import SessionLocal
 from geopy.geocoders import Nominatim
 
@@ -54,7 +54,7 @@ def get_user_state(user_id: int) -> str | None:
     
     return user.state if user else None
 
-def add_user_order_type(user_id: int, order_type: str):
+def add_user_order_type(user_id: int, order_type: str):    
     db = SessionLocal()
     existing_order = db.query(Order).filter(Order.user_id == user_id, Order.status == "basket").first()
     
@@ -115,11 +115,13 @@ def get_user_location(user_id: int) -> str | None:
 
 
 
-def get_category_name_all() -> str | None:
+def get_category_name_all(language: str) -> str | None:
     try:
         db = SessionLocal()
         categories = db.query(Category).all()
-        names = [category.name for category in categories]
+        name_field = f"name_{language}"
+        names = [getattr(category, name_field, category.name_en or category.name_uz or category.name_ru) for category in categories]
+
         result = ", ".join(names)
         print(result)
         return result
@@ -130,3 +132,31 @@ def get_category_name_all() -> str | None:
         db.close()
 
 
+def add_user_extra_location(user_id: int, extra_location: str):
+    db = SessionLocal()
+    order = db.query(Order).filter(Order.user_id == user_id, Order.status == "basket").first()
+    
+    if order:
+        order.extra_location = extra_location
+        db.commit()  
+        db.refresh(order) 
+    else:
+        print(f"No active 'basket' order found for user {user_id}")
+    
+    return order
+
+def get_user_extra_location(user_id: int) -> str | None:
+    db = SessionLocal()
+    order = db.query(Order).filter(Order.user_id == user_id).first()
+    db.close()
+    
+    return order.extra_location if order else None
+
+def get_category_by_name(name: str, language: str) -> Category | None:
+    db = SessionLocal()
+    name_field = f"name_{language}"
+    return db.query(Category).filter(getattr(Category, name_field) == name).first()
+
+def get_subcategories_by_category_id(category_id: int) -> list[SubCategory]:
+    db = SessionLocal()
+    return db.query(SubCategory).filter(SubCategory.category_id == category_id).all()

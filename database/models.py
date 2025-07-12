@@ -35,20 +35,39 @@ class Category(Base):
     __tablename__ = "categories"
 
     id = Column(Integer, primary_key=True, index=True)
-    name = Column(String, nullable=False)
-    parent_id = Column(Integer, ForeignKey("categories.id"), nullable=True)
-    parent = relationship('Category', remote_side=[id])
+    name_uz = Column(String, nullable=False)
+    name_ru = Column(String, nullable=False)
+    name_en = Column(String, nullable=False)
+
+    subcategories = relationship("SubCategory", back_populates="category")
+
+
+class SubCategory(Base):
+    __tablename__ = "subcategories"
+
+    id = Column(Integer, primary_key=True, index=True)
+    category_id = Column(Integer, ForeignKey("categories.id"))
+    name_uz = Column(String, nullable=False)
+    name_ru = Column(String, nullable=False)
+    name_en = Column(String, nullable=False)
+
+    category = relationship("Category", back_populates="subcategories")
+    products = relationship("Product", back_populates="subcategory")
+
 
 class Product(Base):
     __tablename__ = "products"
 
     id = Column(Integer, primary_key=True, index=True)
-    category_id = Column(Integer, ForeignKey("categories.id"))
+    subcategory_id = Column(Integer, ForeignKey("subcategories.id"))
     name = Column(String, nullable=False)
     description = Column(String, nullable=True)
     price = Column(Float, nullable=False)
     image_url = Column(String, nullable=True)
     available = Column(Boolean, default=True)
+
+    subcategory = relationship("SubCategory", back_populates="products")
+
 
 class BasketItem(Base):
     __tablename__ = "basket_items"
