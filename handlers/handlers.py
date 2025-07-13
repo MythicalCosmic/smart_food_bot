@@ -212,17 +212,19 @@ async def handle_category_selection(message: Message, state: FSMContext):
     try:
         category = get_category_by_name(selected_category_name, language)
         if not category:
-            await message.reply("❌ Unknown category.")
+            await message.reply(get_translation("unknown_category", language=language), parse_mode="HTML")
             return
         subcategories = get_subcategories_by_category_id(category.id)
         if not subcategories:
-            await message.reply("❌ No subcategories found.")
+            await message.reply(get_translation("no_subcategories", language=language), parse_mode="HTML")
             return
         keyboard = generate_subcategory_keyboard(subcategories, language)
         await message.reply(
-            text="📂 Select a subcategory:",
+            text=get_translation("subcategory_message", language=language),
+            parse_mode="HTML",
             reply_markup=keyboard
         )
+        set_user_state(user_id=user_id, state=OrderStates.subcategory.state)
         await state.set_state(OrderStates.subcategory)
     except Exception as e:
         await message.reply(f"❌ Error: {e}")
@@ -235,15 +237,16 @@ async def handle_subcategory_selection(message: Message, state: FSMContext):
     try:
         subcategory = get_subcategory_by_name(selected_subcategory_name, language)
         if not subcategory:
-            await message.reply("❌ Unknown subcategory.")
+            await message.reply(get_translation("unknown_subcategory", language=language), parse_mode="HTML")
             return
         items = get_products_by_subcategories_id(subcategory.id)
         if not items:
-            await message.reply("❌ No items found in this subcategory.")
+            await message.reply(get_translation("no_products", language=language), parse_mode="HTML")
             return
         keyboard = generate_products_keyboard(items, language)
         await message.reply(
-            text="📦 Select an item:",
+            text=get_translation("products_message", language=language),
+            parse_mode="HTML",
             reply_markup=keyboard
         )
     except Exception as e:

@@ -68,7 +68,8 @@ class Product(Base):
     image_url = Column(String, nullable=True)
     available = Column(Boolean, default=True)
 
-    subcategory = relationship("SubCategory", back_populates="products")
+    subcategory = relationship("SubCategory", back_populates="products")    
+    basket_items = relationship("BasketItem", back_populates="product")
 
 
 class BasketItem(Base):
@@ -79,3 +80,4 @@ class BasketItem(Base):
     product_id = Column(Integer, ForeignKey("products.id"))
     quantity = Column(Integer, default=1)
     order = relationship("Order", back_populates="items")
+    product = relationship("Product", back_populates="basket_items")

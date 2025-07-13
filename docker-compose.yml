@@ -1,0 +1,14 @@
+version: '3.8'
+
+services:
+  bot:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "8000:8000"
+    environment:
+      - WEBHOOK_URL=${WEBHOOK_URL}
+      - WEBHOOK=${WEBHOOK}
+    volumes:
+      - .:/app

@@ -12,6 +12,7 @@ class OrderStates(StatesGroup):
     location_confirmation = State()
     items = State()
     subcategory = State()
+    products = State()
 
 class BasketStates(StatesGroup):
     basket = State()

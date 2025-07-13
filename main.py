@@ -11,6 +11,7 @@ app = FastAPI()
 
 @app.post("/webhook")
 async def webhook(update: dict):
+    
     tg_update = Update(**update)
     await dp.feed_update(bot, tg_update)
     return {"status": "ok"}
