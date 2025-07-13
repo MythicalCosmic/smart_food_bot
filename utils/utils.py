@@ -1,4 +1,4 @@
-from database.models import User, Order, Category, SubCategory
+from database.models import User, Order, Category, SubCategory, Product
 from database.database import SessionLocal
 from geopy.geocoders import Nominatim
 
@@ -160,3 +160,12 @@ def get_category_by_name(name: str, language: str) -> Category | None:
 def get_subcategories_by_category_id(category_id: int) -> list[SubCategory]:
     db = SessionLocal()
     return db.query(SubCategory).filter(SubCategory.category_id == category_id).all()
+
+def get_products_by_subcategories_id(subcategory_id: int) -> list[Product]:
+    db = SessionLocal()
+    return db.query(Product).filter(Product.subcategory_id == subcategory_id).all()
+
+def get_subcategory_by_name(name: str, language: str) -> SubCategory | None:
+    db = SessionLocal()
+    name_field = f"name_{language}"
+    return db.query(SubCategory).filter(getattr(SubCategory, name_field) == name).first()

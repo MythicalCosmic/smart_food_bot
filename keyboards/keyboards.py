@@ -1,7 +1,7 @@
 from aiogram.types import ReplyKeyboardMarkup, KeyboardButton, InlineKeyboardMarkup, InlineKeyboardButton
 from config.settings import get_translation
 from utils.utils import get_category_name_all
-from database.models import SubCategory
+from database.models import SubCategory, Product
 
 
 UZ = "🇺🇿 O'zbek Tili"
@@ -112,5 +112,19 @@ def generate_subcategory_keyboard(subcategories: list[SubCategory], language: st
         [KeyboardButton(text=getattr(sub, name_field, sub.name_en or sub.name_uz or sub.name_ru))]
         for sub in subcategories
     ]
+    back_text = get_translation("buttons.back", language) or "🔙 Back"
+    keyboard.append([KeyboardButton(text=back_text)])
+
+    return ReplyKeyboardMarkup(keyboard=keyboard, resize_keyboard=True)
+
+def generate_products_keyboard(products: list[Product], language: str) -> ReplyKeyboardMarkup:
+    name_field = f"name_{language}"
+
+    keyboard = [
+        [KeyboardButton(text=getattr(product, name_field, product.name_en or product.name_uz or product.name_ru))]
+        for product in products
+    ]
+    back_text = get_translation("buttons.back", language) or "🔙 Back"
+    keyboard.append([KeyboardButton(text=back_text)])
 
     return ReplyKeyboardMarkup(keyboard=keyboard, resize_keyboard=True)

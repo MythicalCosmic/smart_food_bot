@@ -60,7 +60,9 @@ class Product(Base):
 
     id = Column(Integer, primary_key=True, index=True)
     subcategory_id = Column(Integer, ForeignKey("subcategories.id"))
-    name = Column(String, nullable=False)
+    name_uz = Column(String, nullable=False)
+    name_en = Column(String, nullable=False)
+    name_ru = Column(String, nullable=False)
     description = Column(String, nullable=True)
     price = Column(Float, nullable=False)
     image_url = Column(String, nullable=True)
