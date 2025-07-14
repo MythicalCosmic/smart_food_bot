@@ -211,13 +211,7 @@ async def handle_category_selection(message: Message, state: FSMContext):
     selected_category_name = message.text
     try:
         category = get_category_by_name(selected_category_name, language)
-        if not category:
-            await message.reply(get_translation("unknown_category", language=language), parse_mode="HTML")
-            return
         subcategories = get_subcategories_by_category_id(category.id)
-        if not subcategories:
-            await message.reply(get_translation("no_subcategories", language=language), parse_mode="HTML")
-            return
         keyboard = generate_subcategory_keyboard(subcategories, language)
         await message.reply(
             text=get_translation("subcategory_message", language=language),
@@ -236,13 +230,7 @@ async def handle_subcategory_selection(message: Message, state: FSMContext):
     selected_subcategory_name = message.text
     try:
         subcategory = get_subcategory_by_name(selected_subcategory_name, language)
-        if not subcategory:
-            await message.reply(get_translation("unknown_subcategory", language=language), parse_mode="HTML")
-            return
         items = get_products_by_subcategories_id(subcategory.id)
-        if not items:
-            await message.reply(get_translation("no_products", language=language), parse_mode="HTML")
-            return
         keyboard = generate_products_keyboard(items, language)
         await message.reply(
             text=get_translation("products_message", language=language),
@@ -298,11 +286,30 @@ async def handle_centeral_back(message: Message, state: FSMContext, bot: Bot):
                 reply_markup=location_confirmation_keys(language=language),
                 parse_mode="HTML"
             )
+        async def  go_to_items():
+            await state.set_state(OrderStates.items)
+            set_user_state(user_id=user_id, state=OrderStates.items.state)
+            await message.answer(get_translation("items_message", language=language), reply_markup=cate_keys(language=language),
+                                  parse_mode="HTML")
+            
+        async def go_to_subcategory():
+            await state.set_state(OrderStates.subcategory)
+            set_user_state(user_id=user_id, state=OrderStates.subcategory.state)
+            await message.answer(get_translation("subcategory_message", language=language), reply_markup=cate_keys(language=language),
+                                  parse_mode="HTML")
+            
+        async def go_to_products():
+            await state.set_state(OrderStates.products)
+            set_user_state(user_id=user_id, state=OrderStates.products.state)
+            await message.answer(get_translation("products_message", language=language), reply_markup=cate_keys(language=language),
+                                  parse_mode="HTML")
         state_actions = {
             OrderStates.type.state: go_to_main_menu,
             OrderStates.location.state: go_to_order_type,
             OrderStates.location_confirmation: go_to_location,
             OrderStates.items.state: go_to_location_confirmation,
+            OrderStates.subcategory.state: go_to_subcategory,
+            OrderStates.products.state: go_to_products,
         }
 
         action = state_actions.get(current_state)
@@ -314,7 +321,7 @@ async def handle_centeral_back(message: Message, state: FSMContext, bot: Bot):
     except Exception as e:
         await message.reply(f"Error occurred: {e}")
 
-@router.message(StateFilter(UserStates.set_language, UserStates.menu, OrderStates.type, OrderStates.location, OrderStates.location_confirmation, OrderStates.items, OrderStates.subcategory))
+@router.message(StateFilter(UserStates.set_language, UserStates.menu, OrderStates.type, OrderStates.location, OrderStates.location_confirmation, OrderStates.items, OrderStates.subcategory, OrderStates.products))
 async def handle_unrecognized_input(message: Message, state: FSMContext):
     
     current_state = await state.get_state()
@@ -348,6 +355,10 @@ async def handle_unrecognized_input(message: Message, state: FSMContext):
         },
         OrderStates.subcategory: {
             "text": get_translation("subcategory_message", language=language),
+            "keyboard": cate_keys(language=language)
+        },
+        OrderStates.products: {
+            "text": get_translation("products_message", language=language),
             "keyboard": cate_keys(language=language)
         }
     }
