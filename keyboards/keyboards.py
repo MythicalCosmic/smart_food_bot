@@ -1,6 +1,6 @@
 from aiogram.types import ReplyKeyboardMarkup, KeyboardButton, InlineKeyboardMarkup, InlineKeyboardButton
 from config.settings import get_translation
-from utils.utils import get_category_name_all
+from utils.utils import get_category_name_all, get_subcategory_name_all, get_product_name_all
 from database.models import SubCategory, Product
 
 
@@ -105,26 +105,108 @@ def settings_keys(language: str = "uz") -> ReplyKeyboardMarkup:
         resize_keyboard=True
     )
 
-def generate_subcategory_keyboard(subcategories: list[SubCategory], language: str) -> ReplyKeyboardMarkup:
-    name_field = f"name_{language}"
+def generate_subcategory_keyboard(language: str) -> ReplyKeyboardMarkup:
+    subcategory_str = get_subcategory_name_all(language)
+    if not subcategory_str:
+        return ReplyKeyboardMarkup(
+            keyboard=[[KeyboardButton(text="No subcategories found")]],
+            resize_keyboard=True
+        )
+    
+    subcategories = [s.strip() for s in subcategory_str.split(",")]
 
-    keyboard = [
-        [KeyboardButton(text=getattr(sub, name_field, sub.name_en or sub.name_uz or sub.name_ru))]
-        for sub in subcategories
-    ]
+    keyboard = []
+    for i in range(0, len(subcategories), 2):  
+        row = [KeyboardButton(text=subcategories[i])]
+        if i + 1 < len(subcategories):
+            row.append(KeyboardButton(text=subcategories[i + 1]))
+        keyboard.append(row)
+
     back_text = get_translation("buttons.back", language) or "🔙 Back"
     keyboard.append([KeyboardButton(text=back_text)])
 
     return ReplyKeyboardMarkup(keyboard=keyboard, resize_keyboard=True)
 
-def generate_products_keyboard(products: list[Product], language: str) -> ReplyKeyboardMarkup:
-    name_field = f"name_{language}"
 
-    keyboard = [
-        [KeyboardButton(text=getattr(product, name_field, product.name_en or product.name_uz or product.name_ru))]
-        for product in products
-    ]
+def generate_products_keyboard(language: str) -> ReplyKeyboardMarkup:
+    product_names = get_product_name_all(language)
+    if not product_names:
+        return ReplyKeyboardMarkup(
+            keyboard=[[KeyboardButton(text="No products found")]],
+            resize_keyboard=True
+        )
+
+    keyboard = []
+    for i in range(0, len(product_names), 2):
+        row = [KeyboardButton(text=product_names[i])]
+        if i + 1 < len(product_names):
+            row.append(KeyboardButton(text=product_names[i + 1]))
+        keyboard.append(row)
+
+    basket_text = get_translation("buttons.basket", language) or "🛒 Basket"
+    keyboard.append([KeyboardButton(text=basket_text)])
+
+
     back_text = get_translation("buttons.back", language) or "🔙 Back"
     keyboard.append([KeyboardButton(text=back_text)])
 
     return ReplyKeyboardMarkup(keyboard=keyboard, resize_keyboard=True)
+
+def generate_product_keyboard(product_id: int, language: str) -> InlineKeyboardMarkup:
+    add_text = get_translation("buttons.add", language) or "➕ Add"
+    return InlineKeyboardMarkup(
+        inline_keyboard=[
+            [InlineKeyboardButton(text=add_text, callback_data=f"add:{product_id}")]
+        ]
+    )
+
+
+def generate_quantity_keyboard(product_id: int, quantity: int, language: str) -> InlineKeyboardMarkup:
+    texts = {
+    "uz": {"minus": "➖", "plus": "➕", "count": f"{quantity}", "basket": "🛒 Savat"},
+    "ru": {"minus": "➖", "plus": "➕", "count": f"{quantity}", "basket": "🛒 Корзина"},
+    "en": {"minus": "➖", "plus": "➕", "count": f"{quantity}", "basket": "🛒 Basket"}
+    }.get(language, {
+    "minus": "➖", "plus": "➕", "count": f"{quantity}", "basket": "🛒 Basket"
+    })
+
+
+    return InlineKeyboardMarkup(
+        inline_keyboard=[
+            [
+                InlineKeyboardButton(text=texts["minus"], callback_data=f"decrease:{product_id}"),
+                InlineKeyboardButton(text=texts["count"], callback_data="ignore"),
+                InlineKeyboardButton(text=texts["plus"], callback_data=f"increase:{product_id}")
+            ],
+        ]
+    )
+
+def generate_quantity_only_keyboard(product_id: int, quantity: int) -> InlineKeyboardMarkup:
+    """
+    Generate only the plus/minus quantity control (without basket button).
+    """
+    return InlineKeyboardMarkup(
+        inline_keyboard=[
+            [
+                InlineKeyboardButton(text="➖", callback_data=f"decrease:{product_id}"),
+                InlineKeyboardButton(text=str(quantity), callback_data="noop"),
+                InlineKeyboardButton(text="➕", callback_data=f"increase:{product_id}")
+            ]
+        ]
+    )
+
+def generate_counter_keyboard(product_id: int, quantity: int) -> InlineKeyboardMarkup:
+    """
+    Generate a simple quantity counter keyboard: ➖ qty ➕
+    """
+    return InlineKeyboardMarkup(
+        inline_keyboard=[
+            [
+                InlineKeyboardButton(text="➖", callback_data=f"decrease:{product_id}"),
+                InlineKeyboardButton(text=str(quantity), callback_data="noop"),
+                InlineKeyboardButton(text="➕", callback_data=f"increase:{product_id}")
+            ]
+        ]
+    )
+
+

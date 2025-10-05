@@ -21,6 +21,36 @@ en:
   extra_location_confirmed: "📍 <b>Your detailed address:</b>\n{location}, {extra_location}\n\n📌 Is this correct?"
   items_message: |
     📂 <b>Select a category to see what’s cookin’!</b>
+  products_message: |
+    🍱 <b>Select a product from this category:</b>
+  subcategory_message: |
+    🍽️ <b>Select a subcategory to explore more delicious items!</b>
+  subcategory_not_found: |
+    ⚠️ <b>No subcategories found!</b> Please choose another category.
+
+  basket_empty: "🛒 Your basket is empty! Add something tasty first 😋"
+  your_basket: "🛒 Your Basket"
+  total: "💰 Total"
+  delivery_cost: "🚚 Delivery"
+  order_confirmed: "✅ Your order has been placed successfully! 🎉\nWe'll deliver it soon 🍔"
+  confirm_order: "🧾 Please confirm your order below:"
+  category_not_found: "⚠️ This category was not found."
+  no_products: "❌ There are no products available in this category yet."
+  added_to_basket: "✅ Added to your basket!"
+  removed_from_basket: "🗑 Item removed from your basket."
+  choose_quantity: "🔢 Please choose the quantity:"
+  delivery_distance_error: "📍 Unable to calculate delivery distance. Please send your location again."
+  delivery_details: "🚚 <b>Delivery Details</b>\nDistance: {distance} km\nCost: {cost} UZS"
+  send_location_first: "📍 Please send your location first to calculate delivery!"
+  order_type_selected: "✅ Order type selected: {type}"
+  order_cancelled: "❌ Order cancelled!"
+  feedback_thanks: "💬 Thank you for your feedback!"
+  my_orders_message: "📦 <b>Your Recent Orders</b>"
+  order_in_progress: "⏳ Your order is being prepared..."
+  order_delivered: "✅ Order delivered! Enjoy your meal 😋"
+  error_message: "⚠️ Oops! Something went wrong. Please try again later."
+  back_to_menu: "🔙 Back to Menu"
+
   buttons:
     order: "🛍 Place Order"
     settings: "⚙️ Settings"
@@ -33,13 +63,18 @@ en:
     back: "🔙 Back"
     location: "📍 Send My Location"
     location_confirmation: "📍 <b>Your location:</b>\n{location}\n\n📌 Please confirm"
-    location_confirmed: "✅ <b>Confirmed!</b>\n{location},"
+    location_confirmed: "✅ <b>Confirmed!</b>\n{location}"
     confirm: "✅ Confirm"
     resend: "🔄 Resend Location"
     add_more: "➕ Add Detailed Address"
     language: "🌐 Change Language"
     birthday: "🎂 Set Birthday"
     phone_number: "📞 Update Phone Number"
+    add: "➕ Add"
+    basket: "🛒 Basket"
+    cancel: "❌ Cancel"
+    yes: "✅ Yes"
+    no: "❌ No"
 
 
 uz:
@@ -47,27 +82,59 @@ uz:
     🍔 <b><u>Asosiy Menyu</u></b>
 
     😋 <i>Mazali taomlarimizni ko‘rish uchun quyidagilardan birini tanlang!</i>
-  type: |
-    📦 <b>Iltimos, buyurtma turini tanlang:</b>
   settings_message: |
     ⚙️ <b><u>Sozlamalar</u></b>
 
-    🔧 <i>Quyidagilar orqali sozlamalaringizni o‘zgartiring:</i>
+    🔧 <i>Quyidagilardan sozlamalaringizni o‘zgartiring:</i>
     🌐 Til  
     🎂 Tug‘ilgan kun  
     📞 Telefon raqam
-
+  type: |
+    📦 <b>Iltimos, buyurtma turini tanlang:</b>
   location: |
     📍 <b>Iltimos, lokatsiyangizni yuboring!</b>
   location_confirmation: "📍 <b>Lokatsiyangiz:</b>\n{location}\n\n📌 To‘g‘rimi?"
-  location_confirmed: "✅ <b>Lokatsiyangiz tasdiqlandi:</b>\n{location}\n\n🍽 Endi buyurtma berishingiz mumkin!"
+  location_confirmed: "✅ <b>Lokatsiyangiz tasdiqlandi:</b>\n{location}!"
+  extra_location_text: |
+    📍 <b>Iltimos, to‘liq manzilingizni yuboring:</b>
+  extra_location_confirmed: "📍 <b>To‘liq manzilingiz:</b>\n{location}, {extra_location}\n\n📌 To‘g‘rimi?"
   items_message: |
     📂 <b>Iltimos, kategoriyani tanlang:</b>
+  products_message: |
+    🍱 <b>Ushbu kategoriyadan mahsulot tanlang:</b>
+  subcategory_message: |
+    🍽️ <b>Ko‘proq taomlarni ko‘rish uchun kichik kategoriyani tanlang!</b>
+  subcategory_not_found: |
+    ⚠️ <b>Kichik kategoriya topilmadi!</b> Iltimos, boshqa kategoriyani tanlang.
+
+  basket_empty: "🛒 Savatingiz bo‘sh! Avval mazali taom qo‘shing 😋"
+  your_basket: "🛒 Savatingiz"
+  total: "💰 Jami"
+  delivery_cost: "🚚 Yetkazib berish"
+  order_confirmed: "✅ Buyurtmangiz muvaffaqiyatli qabul qilindi! 🎉\nTez orada yetkazib beramiz 🍔"
+  confirm_order: "🧾 Quyidagi buyurtmangizni tasdiqlang:"
+  category_not_found: "⚠️ Bunday kategoriya topilmadi."
+  no_products: "❌ Bu kategoriyada hozircha mahsulot yo‘q."
+  added_to_basket: "✅ Savatga qo‘shildi!"
+  removed_from_basket: "🗑 Mahsulot savatdan olib tashlandi."
+  choose_quantity: "🔢 Iltimos, sonini tanlang:"
+  delivery_distance_error: "📍 Masofani hisoblashda xatolik. Iltimos, lokatsiyangizni qayta yuboring."
+  delivery_details: "🚚 <b>Yetkazib berish ma’lumotlari</b>\nMasofa: {distance} km\nNarxi: {cost} so‘m"
+  send_location_first: "📍 Iltimos, avval lokatsiyangizni yuboring!"
+  order_type_selected: "✅ Buyurtma turi tanlandi: {type}"
+  order_cancelled: "❌ Buyurtma bekor qilindi!"
+  feedback_thanks: "💬 Fikringiz uchun rahmat!"
+  my_orders_message: "📦 <b>So‘nggi buyurtmalaringiz</b>"
+  order_in_progress: "⏳ Buyurtmangiz tayyorlanmoqda..."
+  order_delivered: "✅ Buyurtmangiz yetkazildi! Yoqimli ishtaha 😋"
+  error_message: "⚠️ Xatolik yuz berdi. Keyinroq urinib ko‘ring."
+  back_to_menu: "🔙 Menyuga qaytish"
+
   buttons:
     order: "🛍 Buyurtma berish"
     settings: "⚙️ Sozlamalar"
     about: "ℹ️ Biz haqimizda"
-    sale: "🎉 Maxsus Aksiya"
+    sale: "🎉 Maxsus aksiya"
     feedback: "✍️ Fikr bildirish"
     my_orders: "📋 Buyurtmalarim"
     deliver: "🚚 Yetkazib berish"
@@ -75,13 +142,19 @@ uz:
     back: "🔙 Orqaga"
     location: "📍 Lokatsiyamni yuborish"
     location_confirmation: "📍 <b>Lokatsiyangiz:</b>\n{location}\n\n📌 Tasdiqlaysizmi?"
-    location_confirmed: "✅ <b>Lokatsiyangiz tasdiqlandi:</b>\n{location}\n\n🍽 Endi buyurtma berish vaqti!"
+    location_confirmed: "✅ <b>Tasdiqlandi!</b>\n{location}"
     confirm: "✅ Tasdiqlash"
     resend: "🔄 Qayta yuborish"
     add_more: "➕ To‘liq manzil qo‘shish"
     language: "🌐 Tilni o‘zgartirish"
     birthday: "🎂 Tug‘ilgan kun"
     phone_number: "📞 Telefon raqam"
+    add: "➕ Qo‘shish"
+    basket: "🛒 Savat"
+    cancel: "❌ Bekor qilish"
+    yes: "✅ Ha"
+    no: "❌ Yo‘q"
+
 
 ru:
   menu_message: |
@@ -95,15 +168,47 @@ ru:
     🌐 Язык  
     🎂 День рождения  
     📞 Телефон
-
   type: |
     📦 <b>Пожалуйста, выберите тип заказа:</b>
   location: |
     📍 <b>Пожалуйста, отправьте ваше местоположение!</b>
   location_confirmation: "📍 <b>Ваше местоположение:</b>\n{location}\n\n📌 Всё верно?"
-  location_confirmed: "✅ <b>Местоположение подтверждено:</b>\n{location}\n\n🍽 Теперь можно выбирать вкусности!"
+  location_confirmed: "✅ <b>Местоположение подтверждено:</b>\n{location}!"
+  extra_location_text: |
+    📍 <b>Отправьте ваш точный адрес:</b>
+  extra_location_confirmed: "📍 <b>Точный адрес:</b>\n{location}, {extra_location}\n\n📌 Всё верно?"
   items_message: |
     📂 <b>Выберите категорию:</b>
+  products_message: |
+    🍱 <b>Выберите продукт из этой категории:</b>
+  subcategory_message: |
+    🍽️ <b>Выберите подкатегорию, чтобы увидеть больше вкусных блюд!</b>
+  subcategory_not_found: |
+    ⚠️ <b>Подкатегорий не найдено!</b> Пожалуйста, выберите другую категорию.
+
+  basket_empty: "🛒 Ваша корзина пуста! Добавьте что-нибудь вкусное 😋"
+  your_basket: "🛒 Ваша корзина"
+  total: "💰 Итого"
+  delivery_cost: "🚚 Доставка"
+  order_confirmed: "✅ Заказ успешно оформлен! 🎉\nСкоро доставим 🍔"
+  confirm_order: "🧾 Пожалуйста, подтвердите ваш заказ:"
+  category_not_found: "⚠️ Категория не найдена."
+  no_products: "❌ В этой категории пока нет товаров."
+  added_to_basket: "✅ Добавлено в корзину!"
+  removed_from_basket: "🗑 Удалено из корзины."
+  choose_quantity: "🔢 Пожалуйста, выберите количество:"
+  delivery_distance_error: "📍 Не удалось рассчитать расстояние. Отправьте местоположение снова."
+  delivery_details: "🚚 <b>Детали доставки</b>\nРасстояние: {distance} км\nСтоимость: {cost} сум"
+  send_location_first: "📍 Пожалуйста, сначала отправьте своё местоположение!"
+  order_type_selected: "✅ Тип заказа выбран: {type}"
+  order_cancelled: "❌ Заказ отменён!"
+  feedback_thanks: "💬 Спасибо за ваш отзыв!"
+  my_orders_message: "📦 <b>Ваши последние заказы</b>"
+  order_in_progress: "⏳ Ваш заказ готовится..."
+  order_delivered: "✅ Заказ доставлен! Приятного аппетита 😋"
+  error_message: "⚠️ Произошла ошибка. Попробуйте позже."
+  back_to_menu: "🔙 Назад в меню"
+
   buttons:
     order: "🛍 Сделать заказ"
     settings: "⚙️ Настройки"
@@ -116,10 +221,15 @@ ru:
     back: "🔙 Назад"
     location: "📍 Отправить местоположение"
     location_confirmation: "📍 <b>Ваше местоположение:</b>\n{location}\n\n📌 Подтверждаете?"
-    location_confirmed: "✅ <b>Подтверждено:</b>\n{location}\n\n🍽 Теперь можно заказывать!"
+    location_confirmed: "✅ <b>Подтверждено!</b>\n{location}"
     confirm: "✅ Подтвердить"
     resend: "🔄 Отправить снова"
     add_more: "➕ Добавить точный адрес"
     language: "🌐 Сменить язык"
     birthday: "🎂 День рождения"
     phone_number: "📞 Телефон"
+    add: "➕ Добавить"
+    basket: "🛒 Корзина"
+    cancel: "❌ Отмена"
+    yes: "✅ Да"
+    no: "❌ Нет"

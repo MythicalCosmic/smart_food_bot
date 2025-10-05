@@ -1,6 +1,7 @@
-from database.models import User, Order, Category, SubCategory, Product
+from database.models import User, Order, Category, SubCategory, Product, BasketItem
 from database.database import SessionLocal
 from geopy.geocoders import Nominatim
+from math import radians, sin, cos, sqrt, atan2
 
 def user_exists(user_id: int) -> bool:
     db = SessionLocal()
@@ -132,6 +133,50 @@ def get_category_name_all(language: str) -> str | None:
         db.close()
 
 
+def get_subcategory_name_all(language: str) -> str | None:
+    try:
+        db = SessionLocal()
+        subcategories = db.query(SubCategory).all()
+        name_field = f"name_{language}"
+
+        names = [
+            getattr(subcategory, name_field, subcategory.name_en or subcategory.name_uz or subcategory.name_ru)
+            for subcategory in subcategories
+        ]
+
+        result = ", ".join(names)
+        print(result)
+        return result
+    except Exception as e:
+        print(f"Error fetching subcategories names: {e}")
+        return None
+    finally:
+        db.close()
+
+
+def get_product_name_all(language: str) -> list[str] | None:
+    try:
+        db = SessionLocal()
+        products = db.query(Product).all()
+        name_field = f"name_{language}"
+
+        names = [
+            getattr(product, name_field, None)
+            or product.name_en
+            or product.name_uz
+            or product.name_ru
+            for product in products
+        ]
+
+        return names
+    except Exception as e:
+        print(f"Error fetching product names: {e}")
+        return None
+    finally:
+        db.close()
+
+
+
 def add_user_extra_location(user_id: int, extra_location: str):
     db = SessionLocal()
     order = db.query(Order).filter(Order.user_id == user_id, Order.status == "basket").first()
@@ -169,3 +214,98 @@ def get_subcategory_by_name(name: str, language: str) -> SubCategory | None:
     db = SessionLocal()
     name_field = f"name_{language}"
     return db.query(SubCategory).filter(getattr(SubCategory, name_field) == name).first()
+
+
+def get_product_by_name(name: str, language: str) -> Product | None:
+    db = SessionLocal()
+    name_field = f"name_{language}"
+    return db.query(Product).filter(getattr(Product, name_field) == name).first()
+
+def get_product_by_id(product_id: int) -> Product | None:
+    db = SessionLocal()
+    try:
+        return db.query(Product).filter(Product.id == product_id).first()
+    except Exception as e:
+        print(f"❌ Error fetching product by id {product_id}: {e}")
+        return None
+    finally:
+        db.close()
+
+def get_or_create_basket_item(user_id: int, product_id: int) -> BasketItem:
+    db = SessionLocal()
+    try:
+        # find active basket order
+        order = db.query(Order).filter(Order.user_id == user_id, Order.status == "basket").first()
+        if not order:
+            order = Order(user_id=user_id, order_type="delivery", status="basket")
+            db.add(order)
+            db.commit()
+            db.refresh(order)
+
+        # find existing item
+        item = db.query(BasketItem).filter(BasketItem.order_id == order.id, BasketItem.product_id == product_id).first()
+        if not item:
+            item = BasketItem(order_id=order.id, product_id=product_id, quantity=1)
+            db.add(item)
+            db.commit()
+            db.refresh(item)
+
+        return item
+    finally:
+        db.close()
+
+
+def save_basket_item(basket_item: BasketItem) -> None:
+    db = SessionLocal()
+    try:
+        db.merge(basket_item)  
+        db.commit()
+    finally:
+        db.close()
+
+
+def get_user_basket(user_id: int):
+    session = SessionLocal()
+    try:
+        order = (
+            session.query(Order)
+            .filter(Order.user_id == user_id, Order.status == "basket")
+            .first()
+        )
+        if not order:
+            return [] 
+
+        return (
+            session.query(BasketItem)
+            .filter(BasketItem.order_id == order.id)
+            .all()
+        )
+    finally:
+        session.close()
+
+def calculate_distance(lat1, lon1, lat2, lon2):
+    R = 6371.0 
+    d_lat = radians(lat2 - lat1)
+    d_lon = radians(lon2 - lon1)
+    a = sin(d_lat / 2)**2 + cos(radians(lat1)) * cos(radians(lat2)) * sin(d_lon / 2)**2
+    c = 2 * atan2(sqrt(a), sqrt(1 - a))
+    return R * c
+
+def get_user_latlon(user_id: int) -> tuple[float, float] | None:
+    try:
+        session = SessionLocal()
+        order = session.query(Order)\
+            .filter(Order.user_id == user_id)\
+            .filter(Order.location_lat.isnot(None), Order.location_lon.isnot(None))\
+            .order_by(Order.created_at.desc())\
+            .first()
+
+        if order:
+            return (order.location_lat, order.location_lon)
+        else:
+            return None
+    except Exception as e:
+        print(f"Error fetching user coordinates: {e}")
+        return None
+    finally:
+        session.close()

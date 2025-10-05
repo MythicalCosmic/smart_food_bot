@@ -1,5 +1,5 @@
 from aiogram import Router, Bot, F
-from aiogram.types import Message, ContentType 
+from aiogram.types import Message, ContentType, FSInputFile
 from aiogram.fsm.context import FSMContext
 from aiogram.filters import Command, StateFilter
 from .states import UserStates, OrderStates
@@ -8,7 +8,7 @@ from keyboards.keyboards import *
 from utils.utils import *
 from geopy.geocoders import Nominatim
 from geopy.exc import GeocoderTimedOut
-
+from aiogram.types import CallbackQuery
 
 router = Router()
 
@@ -121,24 +121,37 @@ async def handle_location(message: Message, state: FSMContext, bot: Bot):
     except Exception as e:
         await message.reply(f"⚠️ Error occurred: {e}")
 
-@router.message(lambda message: message.text == get_button_text("confirm", get_user_language(message.from_user.id)), StateFilter(OrderStates.location_confirmation))
+@router.message(
+    lambda message: message.text == get_button_text("confirm", get_user_language(message.from_user.id)),
+    StateFilter(OrderStates.location_confirmation)
+)
 async def confirm_location(message: Message, state: FSMContext, bot: Bot):
     try:
         user_id = message.from_user.id
         language = get_user_language(user_id=user_id)
-        user_location = get_user_location(user_id=user_id)
+        
+        user_location = get_user_location(user_id=user_id) or ""
+        extra_location = get_user_extra_location(user_id=user_id) or ""
+
         set_user_state(user_id=user_id, state=OrderStates.items.state)
+
         await message.reply(
-            text=get_translation("location_confirmed", language=language).replace("{location}", user_location) + "\n\n" + get_user_extra_location(user_id=user_id),
+            text=get_translation("location_confirmed", language=language).replace("{location}", str(user_location))
+                 + (f"\n\n{extra_location}" if extra_location else ""),
             parse_mode="HTML",
         )
+
         await message.reply(
             text=get_translation("items_message", language=language),
-            parse_mode="HTML", reply_markup=cate_keys(language=language)
+            parse_mode="HTML",
+            reply_markup=cate_keys(language=language)
         )
+
         await state.set_state(OrderStates.items)
+
     except Exception as e:
         await message.reply(f"Error occurred: {e}")
+
 
 @router.message(lambda message: message.text == get_button_text("resend", get_user_language(message.from_user.id)), StateFilter(OrderStates.location_confirmation))
 async def resend_location(message: Message, state: FSMContext, bot: Bot):
@@ -204,41 +217,59 @@ async def handle_items(message: Message, state: FSMContext, bot: Bot):
     except Exception as e:
         await message.reply(f"Error occured: {e}")
 
-@router.message(StateFilter(OrderStates.items))
-async def handle_category_selection(message: Message, state: FSMContext):
+@router.message(lambda message: message.text == get_button_text("basket", get_user_language(message.from_user.id)), StateFilter(OrderStates.products))
+async def handle_basket_button(message: Message, state: FSMContext):
     user_id = message.from_user.id
     language = get_user_language(user_id)
-    selected_category_name = message.text
-    try:
-        category = get_category_by_name(selected_category_name, language)
-        subcategories = get_subcategories_by_category_id(category.id)
-        keyboard = generate_subcategory_keyboard(subcategories, language)
-        await message.reply(
-            text=get_translation("subcategory_message", language=language),
-            parse_mode="HTML",
-            reply_markup=keyboard
-        )
-        set_user_state(user_id=user_id, state=OrderStates.subcategory.state)
-        await state.set_state(OrderStates.subcategory)
-    except Exception as e:
-        await message.reply(f"❌ Error: {e}")
 
-@router.message(StateFilter(OrderStates.subcategory))
-async def handle_subcategory_selection(message: Message, state: FSMContext):
-    user_id = message.from_user.id
-    language = get_user_language(user_id)
-    selected_subcategory_name = message.text
-    try:
-        subcategory = get_subcategory_by_name(selected_subcategory_name, language)
-        items = get_products_by_subcategories_id(subcategory.id)
-        keyboard = generate_products_keyboard(items, language)
+    basket_text = get_translation("buttons.basket", language) or "🛒 Basket"
+    if message.text != basket_text:
+        return 
+
+    basket_items = get_user_basket(user_id) 
+    if not basket_items:
         await message.reply(
-            text=get_translation("products_message", language=language),
+            text=get_translation("basket_empty", language) or "🛒 Your basket is empty!",
             parse_mode="HTML",
-            reply_markup=keyboard
+            reply_markup=generate_products_keyboard(language)
         )
-    except Exception as e:
-        await message.reply(f"❌ Error: {e}")
+        return
+
+    lines = []
+    total_price = 0
+    for item in basket_items:
+        product = get_product_by_id(item.product_id)
+        product_name = getattr(product, f"name_{language}", product.name_en)
+        item_total = product.price * item.quantity
+        total_price += item_total
+        lines.append(f"• <b>{product_name}</b> × {item.quantity} = {item_total} UZS")
+
+    basket_summary = "\n".join(lines)
+    basket_summary += f"\n\n<b>{get_translation('total', language) or 'Total'}:</b> {total_price} UZS"
+
+    base_lat, base_lon = 40.494433, 72.325357
+
+    user_lat, user_lon = get_user_latlon(user_id)  
+
+    distance_km = calculate_distance(base_lat, base_lon, user_lat, user_lon)
+
+    delivery_cost = 5000
+    if distance_km > 1:
+        delivery_cost += int((distance_km - 1) * 1000)
+
+    total_with_delivery = total_price + delivery_cost
+
+    basket_summary = "\n".join(lines)
+    basket_summary += f"\n\n🚚 <b>Delivery:</b> {delivery_cost} UZS"
+    basket_summary += f"\n<b>{get_translation('total', language) or 'Total'}:</b> {total_with_delivery} UZS"
+
+    await message.reply(
+        text=f"<b>{get_translation('your_basket', language) or 'Your Basket'}</b>\n\n{basket_summary}",
+        parse_mode="HTML",
+        reply_markup=generate_products_keyboard(language) 
+    )
+
+
 
 @router.message(StateFilter(UserStates.menu))
 async def menu_handler(message: Message, state: FSMContext, bot: Bot):
@@ -251,7 +282,7 @@ async def menu_handler(message: Message, state: FSMContext, bot: Bot):
     except Exception as e:
         await message.reply(f"Error occured: {e}")
 
-@router.message(lambda message: message.text == get_button_text("back", get_user_language(message.from_user.id)), StateFilter(OrderStates.type, OrderStates.location, OrderStates.location_confirmation, OrderStates.items))
+@router.message(lambda message: message.text == get_button_text("back", get_user_language(message.from_user.id)), StateFilter(OrderStates.type, OrderStates.location, OrderStates.location_confirmation, OrderStates.items, OrderStates.subcategory, OrderStates.products))
 async def handle_centeral_back(message: Message, state: FSMContext, bot: Bot):
     try:
         current_state = await state.get_state()
@@ -308,8 +339,8 @@ async def handle_centeral_back(message: Message, state: FSMContext, bot: Bot):
             OrderStates.location.state: go_to_order_type,
             OrderStates.location_confirmation: go_to_location,
             OrderStates.items.state: go_to_location_confirmation,
-            OrderStates.subcategory.state: go_to_subcategory,
-            OrderStates.products.state: go_to_products,
+            OrderStates.subcategory.state: go_to_items,
+            OrderStates.products.state: go_to_subcategory,
         }
 
         action = state_actions.get(current_state)
@@ -320,6 +351,220 @@ async def handle_centeral_back(message: Message, state: FSMContext, bot: Bot):
 
     except Exception as e:
         await message.reply(f"Error occurred: {e}")
+
+@router.message(StateFilter(OrderStates.items))
+async def handle_category_selection(message: Message, state: FSMContext):
+    user_id = message.from_user.id
+    language = get_user_language(user_id)
+    selected_category_name = message.text
+    try:
+        category = get_category_by_name(selected_category_name, language)
+        if not category:  
+            await message.reply(
+                text=get_translation("category_not_found", language=language).replace("{name}", selected_category_name),
+                parse_mode="HTML",
+                reply_markup=cate_keys(language=language) 
+            )
+            return
+        subcategories = get_subcategories_by_category_id(category.id)
+        if not subcategories: 
+            await message.reply(
+                text=get_translation("no_subcategories", language=language).replace("{name}", selected_category_name),
+                parse_mode="HTML",
+                reply_markup=cate_keys(language=language)
+            )
+            return
+        keyboard = generate_subcategory_keyboard(language)
+
+        await message.reply(
+            text=get_translation("subcategory_message", language=language),
+            parse_mode="HTML",
+            reply_markup=keyboard
+        )
+        set_user_state(user_id=user_id, state=OrderStates.subcategory.state)
+        await state.set_state(OrderStates.subcategory)
+
+    except Exception as e:
+        await message.reply(f"❌ Error on Items: {e}")
+
+
+@router.message(StateFilter(OrderStates.subcategory))
+async def handle_subcategory_selection(message: Message, state: FSMContext, bot: Bot):
+    user_id = message.from_user.id
+    language = get_user_language(user_id)
+    selected_subcategory_name = message.text
+    try:
+        subcategory = get_subcategory_by_name(selected_subcategory_name, language)
+        if not subcategory:  
+            await message.reply(
+                text=get_translation("subcategory_not_found", language=language).replace("{name}", selected_subcategory_name),
+                parse_mode="HTML",
+                reply_markup=generate_subcategory_keyboard(language=language) 
+            )
+            return
+        
+        products = get_products_by_subcategories_id(subcategory.id)
+        if not products:
+            await message.reply(
+                text=get_translation("no_products", language=language),
+                parse_mode="HTML",
+                reply_markup=generate_subcategory_keyboard(language=language)
+            )
+            return
+
+
+        keyboard = generate_products_keyboard(language)
+        await message.reply(
+            text=get_translation("products_message", language=language),
+            parse_mode="HTML",
+            reply_markup=keyboard
+        )
+        set_user_state(user_id, OrderStates.products.state)
+        await state.set_state(OrderStates.products)
+    except Exception as e:
+        await message.reply(f"❌ Error: {e}")
+
+
+@router.message(StateFilter(OrderStates.products))
+async def handle_product_input(message: Message, state: FSMContext, bot: Bot):
+    user_id = message.from_user.id
+    language = get_user_language(user_id)
+    selected_product_name = message.text
+
+    try:
+        product = get_product_by_name(selected_product_name, language)
+        if not product:
+            await message.reply(
+                text=get_translation("product_not_found", language=language).replace("{name}", selected_product_name),
+                parse_mode="HTML",
+                reply_markup=generate_products_keyboard(language=language) 
+            )
+            return
+
+        name_field = f"name_{language}"
+        desc_field = "description"
+
+        name = getattr(product, name_field, product.name_en or product.name_uz or product.name_ru)
+        description = getattr(product, desc_field)
+        price = f"{product.price} UZS"
+
+        caption = (
+            f"<b>{name}</b>\n\n"
+            f"{description}\n\n"
+            f"<b>{get_translation('price', language)}:</b> {price}"
+        )
+
+        keyboard = generate_product_keyboard(product.id, language)  
+
+        if product.image_url:
+            await bot.send_photo(
+                chat_id=user_id,
+                photo=FSInputFile(product.image_url),
+                caption=caption,
+                parse_mode="HTML",
+                reply_markup=keyboard
+            )
+        else:
+            await message.reply(
+                text=caption,
+                parse_mode="HTML",
+                reply_markup=keyboard
+            )
+
+    except Exception as e:
+        await message.reply(f"❌ Error: {e}")
+
+
+@router.callback_query(F.data.startswith("add:"))
+async def handle_add_callback(callback: CallbackQuery, state: FSMContext):
+    user_id = callback.from_user.id
+    language = get_user_language(user_id)
+
+    product_id = int(callback.data.split(":")[1])
+    product = get_product_by_id(product_id)
+
+    basket_item = get_or_create_basket_item(user_id, product_id)
+    save_basket_item(basket_item)
+
+    quantity = basket_item.quantity
+    price_total = product.price * quantity
+
+    keyboard = generate_quantity_keyboard(product.id, quantity, language)
+
+    caption = (
+        f"<b>{getattr(product, f'name_{language}')}</b>\n\n"
+        f"{product.description}\n\n"
+        f"<b>{get_translation('price', language)}:</b> {price_total} UZS"
+    )
+
+    await callback.message.edit_caption(
+        caption=caption,
+        parse_mode="HTML",
+        reply_markup=keyboard
+    )
+    await callback.answer()
+
+
+@router.callback_query(F.data.startswith("increase:"))
+async def handle_increase_callback(callback: CallbackQuery, state: FSMContext):
+    user_id = callback.from_user.id
+    language = get_user_language(user_id)
+
+    product_id = int(callback.data.split(":")[1])
+    product = get_product_by_id(product_id)
+
+    basket_item = get_or_create_basket_item(user_id, product_id)
+    basket_item.quantity += 1
+    save_basket_item(basket_item)
+
+    price_total = product.price * basket_item.quantity
+
+    keyboard = generate_quantity_only_keyboard(product_id, basket_item.quantity)
+
+    caption = (
+        f"<b>{getattr(product, f'name_{language}')}</b>\n\n"
+        f"{product.description}\n\n"
+        f"<b>{get_translation('price', language)}:</b> {price_total} UZS"
+    )
+
+    await callback.message.edit_caption(
+        caption=caption,
+        parse_mode="HTML",
+        reply_markup=keyboard
+    )
+    await callback.answer()
+
+
+@router.callback_query(F.data.startswith("decrease:"))
+async def handle_decrease_callback(callback: CallbackQuery, state: FSMContext):
+    user_id = callback.from_user.id
+    language = get_user_language(user_id)
+
+    product_id = int(callback.data.split(":")[1])
+    product = get_product_by_id(product_id)
+
+    basket_item = get_or_create_basket_item(user_id, product_id)
+    if basket_item.quantity > 1:
+        basket_item.quantity -= 1
+        save_basket_item(basket_item)
+
+    price_total = product.price * basket_item.quantity
+
+    keyboard = generate_counter_keyboard(product_id, basket_item.quantity)
+
+    caption = (
+        f"<b>{getattr(product, f'name_{language}')}</b>\n\n"
+        f"{product.description}\n\n"
+        f"<b>{get_translation('price', language)}:</b> {price_total} UZS"
+    )
+
+    await callback.message.edit_caption(
+        caption=caption,
+        parse_mode="HTML",
+        reply_markup=keyboard
+    )
+    await callback.answer()
+
 
 @router.message(StateFilter(UserStates.set_language, UserStates.menu, OrderStates.type, OrderStates.location, OrderStates.location_confirmation, OrderStates.items, OrderStates.subcategory, OrderStates.products))
 async def handle_unrecognized_input(message: Message, state: FSMContext):
@@ -355,11 +600,11 @@ async def handle_unrecognized_input(message: Message, state: FSMContext):
         },
         OrderStates.subcategory: {
             "text": get_translation("subcategory_message", language=language),
-            "keyboard": cate_keys(language=language)
+            "keyboard": generate_subcategory_keyboard(language=language)
         },
         OrderStates.products: {
             "text": get_translation("products_message", language=language),
-            "keyboard": cate_keys(language=language)
+            "keyboard": generate_products_keyboard(language=language)
         }
     }
     response = state_responses.get(current_state, {
@@ -384,3 +629,6 @@ async def fallback_handler(message: Message, state: FSMContext):
     else:
         await message.reply(get_translation('start_text', 'uz'), parse_mode='HTML', reply_markup=language_keys())
         await state.set_state(UserStates.start) 
+
+
+
