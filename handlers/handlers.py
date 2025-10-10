@@ -9,6 +9,10 @@ from utils.utils import *
 from geopy.geocoders import Nominatim
 from geopy.exc import GeocoderTimedOut
 from aiogram.types import CallbackQuery
+from datetime import datetime
+from config.settings import PAYME_TOKEN, CLICK_TOKEN, ADMIN_ID
+from aiogram.types import Message, LabeledPrice, PreCheckoutQuery
+
 
 router = Router()
 
@@ -202,7 +206,12 @@ async def handle_extra_location(message: Message, state: FSMContext, bot: Bot):
         await message.reply(f"Error occurred: {e}")
 
 
-@router.message(lambda message: any(word in message.text.lower() for word in ["andijon", "o'zbekiston", "marhamat"]), StateFilter(OrderStates.location))
+@router.message(
+    lambda message: message.text and any(
+        word in message.text.lower() for word in ["andijon", "o'zbekiston", "marhamat"]
+    ),
+    StateFilter(OrderStates.location)
+)
 async def handle_items(message: Message, state: FSMContext, bot: Bot):
     try:
         user_id = message.from_user.id
@@ -221,17 +230,19 @@ async def handle_items(message: Message, state: FSMContext, bot: Bot):
 async def handle_basket_button(message: Message, state: FSMContext):
     user_id = message.from_user.id
     language = get_user_language(user_id)
-
     basket_text = get_translation("buttons.basket", language) or "🛒 Basket"
+    selected_subcategory_name = message.text
+    selected_category_name = message.text
+    subcategory = get_subcategory_by_name(selected_subcategory_name, language)
     if message.text != basket_text:
         return 
 
     basket_items = get_user_basket(user_id) 
+
     if not basket_items:
         await message.reply(
             text=get_translation("basket_empty", language) or "🛒 Your basket is empty!",
             parse_mode="HTML",
-            reply_markup=generate_products_keyboard(language)
         )
         return
 
@@ -259,16 +270,380 @@ async def handle_basket_button(message: Message, state: FSMContext):
 
     total_with_delivery = total_price + delivery_cost
 
-    basket_summary = "\n".join(lines)
-    basket_summary += f"\n\n🚚 <b>Delivery:</b> {delivery_cost} UZS"
-    basket_summary += f"\n<b>{get_translation('total', language) or 'Total'}:</b> {total_with_delivery} UZS"
+    formatted_total = f"{total_with_delivery:,}".replace(",", " ")
+    formatted_delivery = f"{delivery_cost:,}".replace(",", " ")
+    formatted_items = "\n".join(lines)
+
+    await state.update_data(
+        delivery_cost=delivery_cost,
+        total_with_delivery=total_with_delivery,
+        formatted_total=formatted_total,
+        formatted_delivery=formatted_delivery,
+        formatted_items=formatted_items,
+        basket_items=basket_items
+    )
+
+    basket_summary = (
+    f"{formatted_items}\n\n"
+    f"🚚 <b>{get_translation('delivery', language)}:</b> {formatted_delivery} UZS\n"
+    f"━━━━━━━━━━━━━━━━━━━━\n"
+    f"💰 <b>{get_translation('total', language) or 'Total'}:</b> "
+    f"<b><u>{formatted_total} UZS</u></b> 💵"
+    )
 
     await message.reply(
         text=f"<b>{get_translation('your_basket', language) or 'Your Basket'}</b>\n\n{basket_summary}",
         parse_mode="HTML",
-        reply_markup=generate_products_keyboard(language) 
+        reply_markup=generate_accept_keyboard(language) 
     )
 
+@router.callback_query(F.data.startswith("confirm_order"))
+async def confirm_order_input(callback: CallbackQuery, state: FSMContext, bot: Bot):
+    user_id = callback.from_user.id
+    language = get_user_language(user_id)
+    set_order_status(user_id=user_id, order_type="waiting_payment")
+
+    data = await state.get_data()
+    basket_items = data.get("formatted_items", "❌ No basket data")
+    formatted_delivery = data.get("formatted_delivery", "0")
+    location = get_user_location(user_id)
+    extra_location = get_user_extra_location(user_id)
+    full_name = callback.from_user.full_name or "N/A"
+    username = callback.from_user.username or "N/A"
+    total_price = data.get("total_price", "0")
+
+    ADMIN_IDS = [6589960007] 
+
+    await callback.message.delete()
+    await callback.message.answer(
+        text=(
+            f"💳 <b>{get_translation('choose_payment_method', language) or 'To‘lov usulini tanlang:'}</b>\n\n"
+            f"{get_translation('please_select_payment', language) or 'Iltimos, to‘lov turini tanlang.'}"
+        ),
+        parse_mode="HTML",
+        reply_markup=generate_payment_keyboard(language)
+    )
+
+    admin_message_text = (
+        f"🧾 <b>Yangi buyurtma!</b>\n\n"
+        f"👤 <b>Foydalanuvchi:</b> {full_name} (@{username})\n"
+        f"🆔 <b>ID:</b> <code>{user_id}</code>\n\n"
+        f"📦 <b>Buyurtma:</b>\n{basket_items}\n\n"
+        f"🚚 <b>Yetkazib berish:</b> {formatted_delivery} UZS\n"
+        f"📍 <b>Manzil:</b> {location, extra_location}\n"
+        f"💰 <b>Jami:</b> {total_price} UZS\n\n"
+        f"🕒 <i>To‘lovni kutmoqda...</i>"
+    )
+
+    admin_message_ids = {}
+
+    for admin_id in ADMIN_IDS:
+        msg = await bot.send_message(
+            admin_id,
+            admin_message_text,
+            parse_mode="HTML",
+            reply_markup=admin_buttons(language, user_id)
+        )
+        admin_message_ids[admin_id] = msg.message_id
+
+
+    await state.update_data(admin_message_ids=admin_message_ids)
+    await callback.answer()
+
+@router.callback_query(F.data("cancel_order"))
+async def cancel_order_handler(callback: CallbackQuery, bot: Bot, state: FSMContext):
+    try:
+        user_id = callback.from_user.id
+        language = get_user_language(user_id)
+        set_order_status(user_id=user_id, order_type="basket")
+        await callback.message.delete()
+    except Exception as e:
+        print(f"❌ Error in cancel_order_handler: {e}")
+        await callback.answer("Xatolik yuz berdi.", show_alert=True)
+
+
+@router.callback_query(F.data.startswith("payment_click"))
+async def handle_payment(callback: CallbackQuery, state: FSMContext, bot: Bot):
+    user_id = callback.from_user.id
+    message = callback.message
+    language = get_user_language(user_id)
+    data = await state.get_data()
+    total_with_delivery = data.get("total_with_delivery")
+    formatted_delivery = data.get("formatted_delivery")
+    total_with_delivery_int = int(float(total_with_delivery) * 100)
+
+    payment_tokens = {
+    'click': CLICK_TOKEN,
+    'payme': PAYME_TOKEN
+    }
+    payment_type = "click"
+    prices = [LabeledPrice(label="Smart Food", amount=total_with_delivery_int)]
+    try:
+        await bot.send_invoice(
+            chat_id=user_id,
+            title="Smart Food",
+            description=f"Total price: {formatted_delivery}",
+            payload=payment_type.upper(),
+            provider_token=payment_tokens.get(payment_type, CLICK_TOKEN),
+            currency="UZS",
+            prices=prices,
+            start_parameter="smart_food_payment",
+            reply_markup=purchase_button(language)
+        )
+    except Exception as e:
+        await bot.send_message(ADMIN_ID, f"handle_payment: {e}")
+
+@router.callback_query(F.data.startswith("payment_payme"))
+async def handle_payment(callback: CallbackQuery, state: FSMContext, bot: Bot):
+    user_id = callback.from_user.id
+    message = callback.message
+    language = get_user_language(user_id)
+    data = await state.get_data()
+    total_with_delivery = data.get("total_with_delivery")
+    formatted_delivery = data.get("formatted_delivery")
+    total_with_delivery_int = int(float(total_with_delivery) * 100)
+
+    payment_tokens = {
+    'click': CLICK_TOKEN,
+    'payme': PAYME_TOKEN
+    }
+    payment_type = "payme"
+    prices = [LabeledPrice(label="Smart Food", amount=total_with_delivery_int)]
+    try:
+        await bot.send_invoice(
+            chat_id=user_id,
+            title="Smart Food",
+            description=f"Total price: {formatted_delivery}",
+            payload=payment_type.upper(),
+            provider_token=payment_tokens.get(payment_type, PAYME_TOKEN),
+            currency="UZS",
+            prices=prices,
+            start_parameter="smart_food_payment",
+            reply_markup=purchase_button(language)
+        )
+    except Exception as e:
+        await bot.send_message(ADMIN_ID, f"handle_payment: {e}")
+
+@router.pre_checkout_query(lambda _: True)
+async def pre_checkout_handler(pre_checkout_query: PreCheckoutQuery, bot: Bot):
+    try:
+        await bot.answer_pre_checkout_query(pre_checkout_query.id, ok=True)
+    except Exception as e:
+        pass
+
+@router.callback_query(F.data == "payment_cash")
+async def payment_cash_handler(callback: CallbackQuery, state: FSMContext, bot: Bot):
+    user_id = callback.from_user.id
+    language = get_user_language(user_id)
+
+    set_order_status(user_id=user_id, order_type="payment_cash")
+
+    data = await state.get_data()
+    admin_message_ids = data.get("admin_message_ids", {})
+
+    basket_items = data.get("formatted_items", "❌ No basket data")
+    formatted_delivery = data.get("formatted_delivery", "0")
+    location = get_user_location(user_id)
+    full_name = callback.from_user.full_name or "N/A"
+    extra_location = get_user_extra_location(user_id)
+
+    username = callback.from_user.username or "N/A"
+    current_time = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+
+    updated_admin_text = (
+        f"🧾 <b>Buyurtma tasdiqlandi (naqd to‘lov)</b>\n\n"
+        f"👤 <b>Foydalanuvchi:</b> {full_name} (@{username})\n"
+        f"🆔 <b>ID:</b> <code>{user_id}</code>\n\n"
+        f"📦 <b>Buyurtma:</b>\n{basket_items}\n\n"
+        f"🚚 <b>Yetkazib berish:</b> {formatted_delivery} UZS\n"
+        f"📍 <b>Manzil:</b> {location, extra_location}\n\n"
+        f"💵 <b>To‘lov turi:</b> Naqd (qabulda)\n"
+        f"⏰ <b>Vaqt:</b> {current_time}\n\n"
+        f"🟢 <i>Buyurtma qabul qilindi, to‘lov joyida amalga oshiriladi.</i>"
+    )
+
+    for admin_id, msg_id in admin_message_ids.items():
+        try:
+            await bot.edit_message_text(
+                chat_id=admin_id,
+                message_id=msg_id,
+                text=updated_admin_text,
+                parse_mode="HTML",
+                reply_markup=admin_buttons(language, user_id)
+            )
+        except Exception as e:
+            print(f"❌ Could not edit admin message for {admin_id}: {e}")
+
+    await callback.message.edit_text(
+        text=(
+            f"💵 <b>Naqd to‘lov tanlandi.</b>\n\n"
+            f"📦 Buyurtmangiz tayyorlanmoqda.\n"
+            f"Iltimos, to‘lovni yetkazib beruvchi kelganda amalga oshiring.\n\n"
+            f"Rahmat! ❤️"
+        ),
+        parse_mode="HTML"
+    )
+
+    await callback.answer()
+    await state.clear()
+
+
+
+@router.message(F.successful_payment)
+async def successful_payment_handler(message: Message, state: FSMContext, bot: Bot):
+    user_id = message.from_user.id
+    username = message.from_user.username or "N/A"
+    full_name = message.from_user.full_name or "N/A"
+    language = get_user_language(user_id)
+    payment_info = message.successful_payment
+    total_amount = payment_info.total_amount / 100
+    currency = payment_info.currency
+
+    set_order_status(user_id=user_id, order_type="payment_success")
+
+    data = await state.get_data()
+    admin_message_ids = data.get("admin_message_ids", {})
+    basket_items = data.get("formatted_items", "❌ No basket data")
+    formatted_delivery = data.get("formatted_delivery", "0")
+    extra_location = get_user_extra_location(user_id)
+
+    location = get_user_location(user_id)
+
+    current_time = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+
+    updated_admin_text = (
+        f"🧾 <b>To‘lov tasdiqlandi!</b>\n\n"
+        f"👤 <b>Foydalanuvchi:</b> {full_name} (@{username})\n"
+        f"🆔 <b>ID:</b> <code>{user_id}</code>\n\n"
+        f"📦 <b>Buyurtma:</b>\n{basket_items}\n\n"
+        f"🚚 <b>Yetkazib berish:</b> {formatted_delivery} UZS\n"
+        f"📍 <b>Manzil:</b> {location, extra_location}\n\n"
+        f"💰 <b>To‘lov:</b> {int(total_amount):,} {currency}\n"
+        f"⏰ <b>Vaqt:</b> {current_time}\n\n"
+        f"✅ <i>To‘lov qabul qilindi, buyurtma tayyorlanmoqda.</i>"
+    )
+
+    for admin_id, msg_id in admin_message_ids.items():
+        try:
+            await bot.edit_message_text(
+                chat_id=admin_id,
+                message_id=msg_id,
+                text=updated_admin_text,
+                parse_mode="HTML",
+                reply_markup=admin_buttons(language, user_id)  
+            )
+        except Exception as e:
+            print(f"❌ Failed to edit admin message for {admin_id}: {e}")
+
+    await message.answer(
+        text=(
+            f"✅ <b>To‘lov muvaffaqiyatli yakunlandi!</b>\n\n"
+            f"💳 <b>Miqdor:</b> {int(total_amount):,} {currency}\n"
+            f"📦 Buyurtmangiz tayyorlanmoqda.\n\n"
+            f"Rahmat, sizning ishonchingiz biz uchun muhim ❤️"
+        ),
+        parse_mode="HTML"
+    )
+
+    await state.clear()
+
+@router.callback_query(F.data.startswith("order_confirm"))
+async def order_confirm_handler(callback: CallbackQuery, bot: Bot):
+    try:
+        _, user_id_str = callback.data.split(":")
+        user_id = int(user_id_str)
+
+        language = get_user_language(user_id)
+
+        set_order_status(user_id=user_id, order_type="accepted")
+
+        estimated_time = "30–45 daqiqa"
+
+        await bot.send_message(
+            chat_id=user_id,
+            text=(
+                f"🍳 <b>Buyurtmangiz tasdiqlandi!</b>\n\n"
+                f"Oshpazlar uni tayyorlashni boshladilar 👨‍🍳\n"
+                f"⏱️ Taxminiy yetkazib berish vaqti: <b>{estimated_time}</b>\n\n"
+                f"Rahmat, sabr-toqat bilan kutganingiz uchun 🙏"
+            ),
+            parse_mode="HTML"
+        )
+
+        await callback.answer("Buyurtma tasdiqlandi ✅", show_alert=False)
+
+    except Exception as e:
+        print(f"❌ Error in order_confirm_handler: {e}")
+        await callback.answer("Xatolik yuz berdi.", show_alert=True)
+
+@router.callback_query(F.data.startswith("order_cancel"))
+async def order_cancel_handler(callback: CallbackQuery, bot: Bot):
+    try:
+        _, user_id_str = callback.data.split(":")
+        user_id = int(user_id_str)
+
+        language = get_user_language(user_id)
+        set_order_status(user_id=user_id, order_type="cancelled")
+
+        await callback.message.edit_text(
+            text=(
+                f"❌ <b>Buyurtma bekor qilindi</b>\n\n"
+                f"👤 <b>Foydalanuvchi ID:</b> <code>{user_id}</code>\n"
+                f"🕓 <i>Bekor qilindi: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}</i>"
+            ),
+            parse_mode="HTML"
+        )
+
+        await bot.send_message(
+            chat_id=user_id,
+            text=(
+                f"⚠️ <b>Buyurtmangiz bekor qilindi.</b>\n\n"
+                f"Agar bu xato bo‘lsa, iltimos, qayta buyurtma bering."
+            ),
+            parse_mode="HTML"
+        )
+
+        await callback.answer("Buyurtma bekor qilindi ❌", show_alert=False)
+
+    except Exception as e:
+        print(f"❌ Error in order_cancel_handler: {e}")
+        await callback.answer("Xatolik yuz berdi.", show_alert=True)
+
+
+@router.callback_query(F.data.startswith("order_delivered"))
+async def order_delivered_handler(callback: CallbackQuery, bot: Bot):
+    try:
+        _, user_id_str = callback.data.split(":")
+        user_id = int(user_id_str)
+
+        language = get_user_language(user_id)
+        set_order_status(user_id=user_id, order_type="delivered")
+
+
+        await callback.message.edit_text(
+            text=(
+                f"🚚 <b>Buyurtma yetkazildi</b>\n\n"
+                f"👤 <b>Foydalanuvchi ID:</b> <code>{user_id}</code>\n"
+                f"✅ Muvaffaqiyatli yetkazildi va yopildi."
+            ),
+            parse_mode="HTML"
+        )
+
+        await bot.send_message(
+            chat_id=user_id,
+            text=(
+                f"🚚 <b>Buyurtmangiz muvaffaqiyatli yetkazildi!</b>\n\n"
+                f"Yoqimli ishtaha! 😋\n"
+                f"Agar sizda taklif yoki fikr bo‘lsa, bizga yozing ❤️"
+            ),
+            parse_mode="HTML"
+        )
+
+        await callback.answer("Buyurtma yetkazildi 🚚", show_alert=False)
+
+    except Exception as e:
+        print(f"❌ Error in order_delivered_handler: {e}")
+        await callback.answer("Xatolik yuz berdi.", show_alert=True)
 
 
 @router.message(StateFilter(UserStates.menu))
@@ -374,7 +749,7 @@ async def handle_category_selection(message: Message, state: FSMContext):
                 reply_markup=cate_keys(language=language)
             )
             return
-        keyboard = generate_subcategory_keyboard(language)
+        keyboard = generate_subcategory_keyboard(language, category_id=category.id)
 
         await message.reply(
             text=get_translation("subcategory_message", language=language),
@@ -393,13 +768,15 @@ async def handle_subcategory_selection(message: Message, state: FSMContext, bot:
     user_id = message.from_user.id
     language = get_user_language(user_id)
     selected_subcategory_name = message.text
+    selected_category_name = message.text
+    category = get_category_by_name(selected_category_name, language)
     try:
         subcategory = get_subcategory_by_name(selected_subcategory_name, language)
         if not subcategory:  
             await message.reply(
                 text=get_translation("subcategory_not_found", language=language).replace("{name}", selected_subcategory_name),
                 parse_mode="HTML",
-                reply_markup=generate_subcategory_keyboard(language=language) 
+                reply_markup=generate_subcategory_keyboard(language=language, category_id=category.id) 
             )
             return
         
@@ -408,12 +785,12 @@ async def handle_subcategory_selection(message: Message, state: FSMContext, bot:
             await message.reply(
                 text=get_translation("no_products", language=language),
                 parse_mode="HTML",
-                reply_markup=generate_subcategory_keyboard(language=language)
+                reply_markup=generate_subcategory_keyboard(language=language, category_id=category.id)
             )
             return
 
 
-        keyboard = generate_products_keyboard(language)
+        keyboard = generate_products_keyboard(language, subcategory_id=subcategory.id)
         await message.reply(
             text=get_translation("products_message", language=language),
             parse_mode="HTML",
@@ -430,6 +807,9 @@ async def handle_product_input(message: Message, state: FSMContext, bot: Bot):
     user_id = message.from_user.id
     language = get_user_language(user_id)
     selected_product_name = message.text
+    selected_subcategory_name = message.text
+    selected_category_name = message.text
+    subcategory = get_subcategory_by_name(selected_subcategory_name, language)
 
     try:
         product = get_product_by_name(selected_product_name, language)
@@ -437,7 +817,7 @@ async def handle_product_input(message: Message, state: FSMContext, bot: Bot):
             await message.reply(
                 text=get_translation("product_not_found", language=language).replace("{name}", selected_product_name),
                 parse_mode="HTML",
-                reply_markup=generate_products_keyboard(language=language) 
+                reply_markup=generate_products_keyboard(language=language, subcategory_id=subcategory.id) 
             )
             return
 
@@ -572,6 +952,11 @@ async def handle_unrecognized_input(message: Message, state: FSMContext):
     current_state = await state.get_state()
     user_id = message.from_user.id
     language = get_user_language(user_id=user_id)
+    selected_category_name = message.text
+    category = get_category_by_name(selected_category_name, language)
+    selected_subcategory_name = message.text
+    selected_category_name = message.text
+    subcategory = get_subcategory_by_name(selected_subcategory_name, language)
     user_location = get_user_location(user_id=user_id)
     state_responses = {
         UserStates.set_language: {
@@ -600,11 +985,11 @@ async def handle_unrecognized_input(message: Message, state: FSMContext):
         },
         OrderStates.subcategory: {
             "text": get_translation("subcategory_message", language=language),
-            "keyboard": generate_subcategory_keyboard(language=language)
+            "keyboard": generate_subcategory_keyboard(language=language, category_id=category.id)
         },
         OrderStates.products: {
             "text": get_translation("products_message", language=language),
-            "keyboard": generate_products_keyboard(language=language)
+            "keyboard": generate_products_keyboard(language=language, subcategory_id=subcategory.id)
         }
     }
     response = state_responses.get(current_state, {

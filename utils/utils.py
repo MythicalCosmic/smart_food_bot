@@ -48,6 +48,27 @@ def set_user_state(user_id: int, state: str):
     
     db.close()
 
+def set_order_status(user_id: int, order_type: str):
+    db = SessionLocal()
+    try:
+        order = (
+            db.query(Order)
+            .filter(Order.user_id == user_id, Order.status == "basket")
+            .order_by(Order.created_at.desc())
+            .first()
+        )
+
+        if order:
+            order.status = order_type
+            db.commit()
+        else:
+            print(f"[DEBUG] No 'basket' order found for user_id={user_id}")
+    except Exception as e:
+        print(f"[ERROR] set_order_status failed: {e}")
+    finally:
+        db.close()
+
+
 def get_user_state(user_id: int) -> str | None:
     db = SessionLocal()
     user = db.query(User).filter(User.id == user_id).first()
@@ -234,7 +255,6 @@ def get_product_by_id(product_id: int) -> Product | None:
 def get_or_create_basket_item(user_id: int, product_id: int) -> BasketItem:
     db = SessionLocal()
     try:
-        # find active basket order
         order = db.query(Order).filter(Order.user_id == user_id, Order.status == "basket").first()
         if not order:
             order = Order(user_id=user_id, order_type="delivery", status="basket")
@@ -242,7 +262,6 @@ def get_or_create_basket_item(user_id: int, product_id: int) -> BasketItem:
             db.commit()
             db.refresh(order)
 
-        # find existing item
         item = db.query(BasketItem).filter(BasketItem.order_id == order.id, BasketItem.product_id == product_id).first()
         if not item:
             item = BasketItem(order_id=order.id, product_id=product_id, quantity=1)
@@ -307,5 +326,17 @@ def get_user_latlon(user_id: int) -> tuple[float, float] | None:
     except Exception as e:
         print(f"Error fetching user coordinates: {e}")
         return None
+    finally:
+        session.close()
+
+
+def get_products_by_subcategories_id(subcategory_id: int):
+    session = SessionLocal()
+    try:
+        products = session.query(Product).filter(Product.subcategory_id == subcategory_id).all()
+        return products
+    except Exception as e:
+        print(f"Error getting products by subcategory_id: {e}")
+        return []
     finally:
         session.close()

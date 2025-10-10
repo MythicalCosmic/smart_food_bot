@@ -9,6 +9,10 @@ BOT_TOKEN = os.getenv("BOT_TOKEN")
 ADMIN_ID = os.getenv("ADMIN_ID")
 
 
+PAYME_TOKEN = os.getenv("PAYME_TOKEN")
+CLICK_TOKEN = os.getenv("CLICK_TOKEN")
+
+
 WEBHOOK = os.getenv("WEBHOOK", "False").lower() == "true"
 WEBHOOK_URL = os.getenv("WEBHOOK_URL", "")
 

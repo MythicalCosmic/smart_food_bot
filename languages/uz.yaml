@@ -27,7 +27,6 @@ en:
     🍽️ <b>Select a subcategory to explore more delicious items!</b>
   subcategory_not_found: |
     ⚠️ <b>No subcategories found!</b> Please choose another category.
-
   basket_empty: "🛒 Your basket is empty! Add something tasty first 😋"
   your_basket: "🛒 Your Basket"
   total: "💰 Total"
@@ -50,6 +49,19 @@ en:
   order_delivered: "✅ Order delivered! Enjoy your meal 😋"
   error_message: "⚠️ Oops! Something went wrong. Please try again later."
   back_to_menu: "🔙 Back to Menu"
+  choose_payment_method: "💳 Choose your payment method:"
+  please_select_payment: "Please select a payment type below."
+  payment_cash: "Cash"
+  payment_click: "Click"
+  payment_payme: "Payme"
+  order_waiting_payment: "🕒 Waiting for payment confirmation..."
+  order_paid: "✅ Payment received! Your order is being processed."
+  order_confirmed_admin: "🧾 New order received!"
+  order_accepted_admin: "✅ You have confirmed this order!"
+  order_accepted_user: "✅ Your order has been accepted and will be delivered soon!"
+  order_cancelled_admin: "❌ Order cancelled by admin."
+  order_cancelled_user: "❌ Your order has been cancelled."
+  buy: "💳 Buy Now"
 
   buttons:
     order: "🛍 Place Order"
@@ -62,8 +74,6 @@ en:
     hand_deliver: "🏃‍♂️ Pickup"
     back: "🔙 Back"
     location: "📍 Send My Location"
-    location_confirmation: "📍 <b>Your location:</b>\n{location}\n\n📌 Please confirm"
-    location_confirmed: "✅ <b>Confirmed!</b>\n{location}"
     confirm: "✅ Confirm"
     resend: "🔄 Resend Location"
     add_more: "➕ Add Detailed Address"
@@ -75,7 +85,12 @@ en:
     cancel: "❌ Cancel"
     yes: "✅ Yes"
     no: "❌ No"
-
+    confirm_order: "✅ Confirm Order"
+    cancel_order: "❌ Cancel Order"
+    payment_cash: "💵 Cash"
+    payment_click: "💸 Click"
+    payment_payme: "💰 Payme"
+    buy: "💳 Buy Now"
 
 uz:
   menu_message: |
@@ -106,7 +121,6 @@ uz:
     🍽️ <b>Ko‘proq taomlarni ko‘rish uchun kichik kategoriyani tanlang!</b>
   subcategory_not_found: |
     ⚠️ <b>Kichik kategoriya topilmadi!</b> Iltimos, boshqa kategoriyani tanlang.
-
   basket_empty: "🛒 Savatingiz bo‘sh! Avval mazali taom qo‘shing 😋"
   your_basket: "🛒 Savatingiz"
   total: "💰 Jami"
@@ -129,6 +143,19 @@ uz:
   order_delivered: "✅ Buyurtmangiz yetkazildi! Yoqimli ishtaha 😋"
   error_message: "⚠️ Xatolik yuz berdi. Keyinroq urinib ko‘ring."
   back_to_menu: "🔙 Menyuga qaytish"
+  choose_payment_method: "💳 To‘lov usulini tanlang:"
+  please_select_payment: "Iltimos, to‘lov turini tanlang."
+  payment_cash: "Naqd pul"
+  payment_click: "Click"
+  payment_payme: "Payme"
+  order_waiting_payment: "🕒 To‘lovni kutmoqda..."
+  order_paid: "✅ To‘lov qabul qilindi! Buyurtma tayyorlanmoqda."
+  order_confirmed_admin: "🧾 Yangi buyurtma qabul qilindi!"
+  order_accepted_admin: "✅ Buyurtma tasdiqlandi!"
+  order_accepted_user: "✅ Buyurtmangiz tasdiqlandi, tez orada yetkaziladi!"
+  order_cancelled_admin: "❌ Buyurtma admin tomonidan bekor qilindi."
+  order_cancelled_user: "❌ Buyurtmangiz bekor qilindi."
+  buy: "💳 To‘lov qilish"
 
   buttons:
     order: "🛍 Buyurtma berish"
@@ -141,8 +168,6 @@ uz:
     hand_deliver: "🏃‍♂️ Olib ketish"
     back: "🔙 Orqaga"
     location: "📍 Lokatsiyamni yuborish"
-    location_confirmation: "📍 <b>Lokatsiyangiz:</b>\n{location}\n\n📌 Tasdiqlaysizmi?"
-    location_confirmed: "✅ <b>Tasdiqlandi!</b>\n{location}"
     confirm: "✅ Tasdiqlash"
     resend: "🔄 Qayta yuborish"
     add_more: "➕ To‘liq manzil qo‘shish"
@@ -154,7 +179,12 @@ uz:
     cancel: "❌ Bekor qilish"
     yes: "✅ Ha"
     no: "❌ Yo‘q"
-
+    confirm_order: "✅ Buyurtmani tasdiqlash"
+    cancel_order: "❌ Buyurtmani bekor qilish"
+    payment_cash: "💵 Naqd"
+    payment_click: "💸 Click"
+    payment_payme: "💰 Payme"
+    buy: "💳 To‘lov qilish"
 
 ru:
   menu_message: |
@@ -185,7 +215,6 @@ ru:
     🍽️ <b>Выберите подкатегорию, чтобы увидеть больше вкусных блюд!</b>
   subcategory_not_found: |
     ⚠️ <b>Подкатегорий не найдено!</b> Пожалуйста, выберите другую категорию.
-
   basket_empty: "🛒 Ваша корзина пуста! Добавьте что-нибудь вкусное 😋"
   your_basket: "🛒 Ваша корзина"
   total: "💰 Итого"
@@ -208,6 +237,19 @@ ru:
   order_delivered: "✅ Заказ доставлен! Приятного аппетита 😋"
   error_message: "⚠️ Произошла ошибка. Попробуйте позже."
   back_to_menu: "🔙 Назад в меню"
+  choose_payment_method: "💳 Выберите способ оплаты:"
+  please_select_payment: "Пожалуйста, выберите тип оплаты."
+  payment_cash: "Наличные"
+  payment_click: "Click"
+  payment_payme: "Payme"
+  order_waiting_payment: "🕒 Ожидание подтверждения оплаты..."
+  order_paid: "✅ Оплата получена! Заказ в обработке."
+  order_confirmed_admin: "🧾 Новый заказ получен!"
+  order_accepted_admin: "✅ Вы подтвердили заказ!"
+  order_accepted_user: "✅ Ваш заказ подтверждён и скоро будет доставлен!"
+  order_cancelled_admin: "❌ Заказ отменён администратором."
+  order_cancelled_user: "❌ Ваш заказ отменён."
+  buy: "💳 Оплатить сейчас"
 
   buttons:
     order: "🛍 Сделать заказ"
@@ -220,11 +262,9 @@ ru:
     hand_deliver: "🏃‍♂️ Самовывоз"
     back: "🔙 Назад"
     location: "📍 Отправить местоположение"
-    location_confirmation: "📍 <b>Ваше местоположение:</b>\n{location}\n\n📌 Подтверждаете?"
-    location_confirmed: "✅ <b>Подтверждено!</b>\n{location}"
     confirm: "✅ Подтвердить"
     resend: "🔄 Отправить снова"
-    add_more: "➕ Добавить точный адрес"
+    add_more: "➕ Добавить адрес"
     language: "🌐 Сменить язык"
     birthday: "🎂 День рождения"
     phone_number: "📞 Телефон"
@@ -233,3 +273,9 @@ ru:
     cancel: "❌ Отмена"
     yes: "✅ Да"
     no: "❌ Нет"
+    confirm_order: "✅ Подтвердить заказ"
+    cancel_order: "❌ Отменить заказ"
+    payment_cash: "💵 Наличные"
+    payment_click: "💸 Click"
+    payment_payme: "💰 Payme"
+    buy: "💳 Оплатить сейчас"

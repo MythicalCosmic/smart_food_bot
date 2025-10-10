@@ -1,6 +1,6 @@
-from aiogram.types import ReplyKeyboardMarkup, KeyboardButton, InlineKeyboardMarkup, InlineKeyboardButton
+from aiogram.types import ReplyKeyboardMarkup, KeyboardButton, InlineKeyboardMarkup, InlineKeyboardButton, WebAppInfo
 from config.settings import get_translation
-from utils.utils import get_category_name_all, get_subcategory_name_all, get_product_name_all
+from utils.utils import get_category_name_all, get_subcategory_name_all, get_product_name_all, get_subcategories_by_category_id, get_products_by_subcategories_id
 from database.models import SubCategory, Product
 
 
@@ -91,6 +91,7 @@ def cate_keys(language: str) -> ReplyKeyboardMarkup:
 
     back_text = get_translation("buttons.back", language) or "🔙 Back"
     keyboard.append([KeyboardButton(text=back_text)])
+    keyboard.append([KeyboardButton(text=get_translation("web_app", language), web_app=WebAppInfo(url="https://e1f355430a5d.ngrok-free.app"))])
 
     return ReplyKeyboardMarkup(keyboard=keyboard, resize_keyboard=True)
 
@@ -105,21 +106,24 @@ def settings_keys(language: str = "uz") -> ReplyKeyboardMarkup:
         resize_keyboard=True
     )
 
-def generate_subcategory_keyboard(language: str) -> ReplyKeyboardMarkup:
-    subcategory_str = get_subcategory_name_all(language)
-    if not subcategory_str:
+def generate_subcategory_keyboard(language: str, category_id: int) -> ReplyKeyboardMarkup:
+    # Get only subcategories for this specific category
+    subcategories = get_subcategories_by_category_id(category_id)
+    
+    if not subcategories:
         return ReplyKeyboardMarkup(
             keyboard=[[KeyboardButton(text="No subcategories found")]],
             resize_keyboard=True
         )
     
-    subcategories = [s.strip() for s in subcategory_str.split(",")]
+    # Get the correct name based on language
+    subcategory_names = [getattr(sub, f'name_{language}') for sub in subcategories]
 
     keyboard = []
-    for i in range(0, len(subcategories), 2):  
-        row = [KeyboardButton(text=subcategories[i])]
-        if i + 1 < len(subcategories):
-            row.append(KeyboardButton(text=subcategories[i + 1]))
+    for i in range(0, len(subcategory_names), 2):  
+        row = [KeyboardButton(text=subcategory_names[i])]
+        if i + 1 < len(subcategory_names):
+            row.append(KeyboardButton(text=subcategory_names[i + 1]))
         keyboard.append(row)
 
     back_text = get_translation("buttons.back", language) or "🔙 Back"
@@ -128,13 +132,18 @@ def generate_subcategory_keyboard(language: str) -> ReplyKeyboardMarkup:
     return ReplyKeyboardMarkup(keyboard=keyboard, resize_keyboard=True)
 
 
-def generate_products_keyboard(language: str) -> ReplyKeyboardMarkup:
-    product_names = get_product_name_all(language)
-    if not product_names:
+# FIXED: Now accepts subcategory_id and filters products
+def generate_products_keyboard(language: str, subcategory_id: int) -> ReplyKeyboardMarkup:
+    # Get only products for this specific subcategory
+    products = get_products_by_subcategories_id(subcategory_id)
+    
+    if not products:
         return ReplyKeyboardMarkup(
             keyboard=[[KeyboardButton(text="No products found")]],
             resize_keyboard=True
         )
+
+    product_names = [getattr(prod, f'name_{language}') for prod in products]
 
     keyboard = []
     for i in range(0, len(product_names), 2):
@@ -145,7 +154,6 @@ def generate_products_keyboard(language: str) -> ReplyKeyboardMarkup:
 
     basket_text = get_translation("buttons.basket", language) or "🛒 Basket"
     keyboard.append([KeyboardButton(text=basket_text)])
-
 
     back_text = get_translation("buttons.back", language) or "🔙 Back"
     keyboard.append([KeyboardButton(text=back_text)])
@@ -182,9 +190,6 @@ def generate_quantity_keyboard(product_id: int, quantity: int, language: str) ->
     )
 
 def generate_quantity_only_keyboard(product_id: int, quantity: int) -> InlineKeyboardMarkup:
-    """
-    Generate only the plus/minus quantity control (without basket button).
-    """
     return InlineKeyboardMarkup(
         inline_keyboard=[
             [
@@ -196,9 +201,6 @@ def generate_quantity_only_keyboard(product_id: int, quantity: int) -> InlineKey
     )
 
 def generate_counter_keyboard(product_id: int, quantity: int) -> InlineKeyboardMarkup:
-    """
-    Generate a simple quantity counter keyboard: ➖ qty ➕
-    """
     return InlineKeyboardMarkup(
         inline_keyboard=[
             [
@@ -209,4 +211,57 @@ def generate_counter_keyboard(product_id: int, quantity: int) -> InlineKeyboardM
         ]
     )
 
+def generate_accept_keyboard(language: str) -> InlineKeyboardMarkup:
+    keyboard = InlineKeyboardMarkup(
+        inline_keyboard=[
+            [InlineKeyboardButton(text=get_translation("confirm", language), callback_data="confirm_order")],
+            [InlineKeyboardButton(text=get_translation("cancel", language), callback_data="cancel_order")],
+        ]
+    )
+    return keyboard
 
+def generate_payment_keyboard(language: str) -> InlineKeyboardMarkup:
+    return InlineKeyboardMarkup(
+        inline_keyboard=[
+            [
+                InlineKeyboardButton(
+                    text=f"💵 {get_translation('payment_cash', language)}",
+                    callback_data="payment_cash"
+                )
+            ],
+            [
+                InlineKeyboardButton(
+                    text=f"💸 {get_translation('payment_click', language)}",
+                    callback_data="payment_click"
+                ),
+                InlineKeyboardButton(
+                    text=f"💰 {get_translation('payment_payme', language)}",
+                    callback_data="payment_payme"
+                ),
+            ],
+            [
+                InlineKeyboardButton(
+                    text=f"⬅️ {get_translation('back', language)}",
+                    callback_data="payment_back"
+                ),
+            ]
+        ]
+    )
+
+def purchase_button(language: str) -> InlineKeyboardMarkup:
+    return InlineKeyboardMarkup(
+        inline_keyboard=[
+            [InlineKeyboardButton(text=get_translation('buy', language), pay=True)]
+        ]
+    )
+
+def admin_buttons(language: str, user_id: int) -> InlineKeyboardMarkup:
+    return InlineKeyboardMarkup(inline_keyboard=[
+        [
+            InlineKeyboardButton(text="✅ Tasdiqlash", callback_data=f"order_confirm:{user_id}"),
+            InlineKeyboardButton(text="🚚 Yetkazildi", callback_data=f"order_delivered:{user_id}")
+        ],
+        [
+            InlineKeyboardButton(text="❌ Bekor qilish", callback_data=f"order_cancel:{user_id}")
+        ]
+    ])
